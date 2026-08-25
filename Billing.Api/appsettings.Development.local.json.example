@@ -1,0 +1,15 @@
+{
+  "Infisical": {
+    "ClientId": "PEGAR_CLIENT_ID_AQUI",
+    "ClientSecret": "PEGAR_CLIENT_SECRET_AQUI"
+  },
+  "Sri": {
+    "UseInMemoryGateway": false,
+    "DefaultEnvironment": "Test"
+  },
+  "RideProvider": {
+    "Ruc": "PEGAR_RUC_13_DIGITOS_DE_LA_EMPRESA_DE_SOFTWARE",
+    "LegalName": "EcuNexo",
+    "FooterLine": "Documento generado por EcuNexo"
+  }
+}

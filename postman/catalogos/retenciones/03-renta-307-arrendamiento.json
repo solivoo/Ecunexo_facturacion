@@ -1,0 +1,7 @@
+{
+  "taxType": "1",
+  "retentionCode": "307",
+  "description": "Retención renta - Arrendamiento bienes inmuebles",
+  "percentage": 10,
+  "validFrom": "2020-01-01"
+}

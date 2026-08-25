@@ -1,0 +1,7 @@
+{
+  "taxCode": "2",
+  "rateCode": "4",
+  "description": "IVA 15%",
+  "rate": 15,
+  "validFrom": "2024-04-01"
+}

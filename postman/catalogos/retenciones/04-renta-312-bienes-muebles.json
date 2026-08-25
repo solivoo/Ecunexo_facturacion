@@ -1,0 +1,7 @@
+{
+  "taxType": "1",
+  "retentionCode": "312",
+  "description": "Retención renta - Transferencia bienes muebles",
+  "percentage": 1.75,
+  "validFrom": "2020-01-01"
+}

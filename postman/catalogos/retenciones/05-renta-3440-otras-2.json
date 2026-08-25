@@ -1,0 +1,7 @@
+{
+  "taxType": "1",
+  "retentionCode": "3440",
+  "description": "Retención renta - Otras retenciones 2%",
+  "percentage": 2,
+  "validFrom": "2020-01-01"
+}
