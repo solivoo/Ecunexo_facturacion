@@ -1,3 +1,5 @@
+using Ecunexo.Billing.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Billing.Infrastructure.Persistence.Migrations;
 
 /// <inheritdoc />
+[DbContext(typeof(BillingDbContext))]
 [Migration("20260817010000_AddInvoiceRideFields")]
 public class AddInvoiceRideFields : Migration
 {

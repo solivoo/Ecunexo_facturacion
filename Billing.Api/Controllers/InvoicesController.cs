@@ -2,16 +2,16 @@ using System.Text.Json;
 using Ecunexo.Billing.Api.Contracts.Invoices;
 using Ecunexo.Billing.Api.Http;
 using Ecunexo.Billing.Api.Ride;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents;
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Emitter;
-using Ecunexo.Billing.Domain.Emitter.Ports;
-using Ecunexo.Billing.Domain.Emitter.Services;
-using Ecunexo.Billing.Domain.Sri;
-using Ecunexo.Billing.Domain.Sri.Ports;
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
-using Ecunexo.Billing.Domain.TaxRules;
+using Ecunexo.Billing.Business.Invoices;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Emitter;
+using Ecunexo.Billing.Core.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Services;
+using Ecunexo.Billing.Core.Sri;
+using Ecunexo.Billing.Core.Sri.Ports;
+using Ecunexo.Billing.Core.TaxRules;
 using Ecunexo.Billing.Infrastructure.Sri;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -21,7 +21,7 @@ namespace Ecunexo.Billing.Api.Controllers;
 [ApiController]
 [Route("api/v1/emitters/{emitterId:guid}/invoices")]
 public sealed class InvoicesController(
-    ITaxRateRepository taxRateRepository,
+    ICreateInvoiceService createInvoiceService,
     IEmitterRepository emitterRepository,
     IInvoiceRepository invoiceRepository,
     ISriOutboxRepository outboxRepository,
@@ -32,7 +32,6 @@ public sealed class InvoicesController(
     ISigningCertificateProvider signingCertificateProvider,
     ISriGateway sriGateway,
     IOptions<SriOptions> sriOptions,
-    ISriEmissionIdentityResolver emissionIdentity,
     RideProviderResolver rideProviderResolver,
     SriVoidPolicy sriVoidPolicy) : ControllerBase
 {
@@ -276,128 +275,65 @@ public sealed class InvoicesController(
         [FromBody] CreateInvoiceRequest request,
         CancellationToken cancellationToken)
     {
-        var emitter = await emitterRepository.GetAsync(emitterId, cancellationToken).ConfigureAwait(false);
-        if (emitter is null)
-            return NotFound("Emisor no encontrado. Cree el emisor primero.");
-
-        try
-        {
-            // En Test, el XML usa el RUC inscrito en celcer (no el inventado del tenant).
-            var identity = emissionIdentity.Resolve(
-                emitter,
-                request.Establishment,
-                request.EmissionPoint);
-
-            string estabCode;
-            string ptoCode;
-            var sequentialOwnerId = emitterId;
-            if (identity.IsSubstituted
-                && identity.Establishment is not null
-                && identity.EmissionPoint is not null)
-            {
-                estabCode = identity.Establishment.Value;
-                ptoCode = identity.EmissionPoint.Value;
-                sequentialOwnerId = await emitterRepository
-                    .FindPreferredIdByRucAsync(identity.Ruc.Value, tenantId: null, cancellationToken)
-                    .ConfigureAwait(false)
-                    ?? emitterId;
-                await emitterRepository
-                    .EnsureEstablishmentPointAsync(
-                        sequentialOwnerId,
-                        estabCode,
-                        ptoCode,
-                        DocumentTypeCode.Factura.Value,
-                        identity.MainAddress,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                (estabCode, ptoCode) = await emitterRepository
-                    .ResolveRegisteredFacturaPointAsync(
-                        emitterId,
-                        request.Establishment,
-                        request.EmissionPoint,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            var estab = EstablishmentCode.Create(estabCode);
-            var pto = EmissionPoint.Create(ptoCode);
-
-            var sequential = await emitterRepository
-                .AllocateNextSequentialAsync(
-                    sequentialOwnerId,
-                    estab.Value,
-                    pto.Value,
-                    DocumentTypeCode.Factura.Value,
-                    requestedSequential: null,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            var lines = request.Lines.Select(x =>
-                new InvoiceLine(
-                    x.LineNumber,
-                    x.Description,
-                    x.Quantity,
-                    new Money(x.UnitPrice),
-                    new Money(x.Discount),
-                    new Money(x.LineTotalWithoutTax),
-                    x.Taxes.Select(t =>
-                        new LineTax(t.TaxCode, t.RateCode, t.Rate, new Money(t.TaxableBase), new Money(t.Value)))
-                    .ToList(),
-                    x.MainCode,
-                    x.CatalogItemId,
-                    x.ItemKind))
-                .ToList();
-
-            var invoice = ElectronicInvoice.Create(
-                identity.Ruc,
-                estab,
-                pto,
-                sequential,
-                request.IssueDate,
-                Counterparty.Create(
-                    request.Counterparty.IdentificationType,
-                    request.Counterparty.Identification,
-                    request.Counterparty.BusinessName,
-                    request.Counterparty.Address,
-                    request.Counterparty.Email,
-                    request.Counterparty.Phone),
-                lines,
-                taxRateRepository,
-                request.PaymentFormCode,
-                request.AdditionalNote,
-                request.PaymentTermDays);
-
-            await invoiceRepository
-                .SaveNewAsync(
-                    invoice,
+        var result = await createInvoiceService
+            .ExecuteAsync(
+                new CreateInvoiceCommand(
                     emitterId,
                     InvoiceRequestScope.ReadTenantId(Request),
                     InvoiceRequestScope.ReadUserId(Request),
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    request.Establishment,
+                    request.EmissionPoint,
+                    request.IssueDate,
+                    new CreateInvoiceCounterparty(
+                        request.Counterparty.IdentificationType,
+                        request.Counterparty.Identification,
+                        request.Counterparty.BusinessName,
+                        request.Counterparty.Address,
+                        request.Counterparty.Email,
+                        request.Counterparty.Phone),
+                    request.Lines.Select(x =>
+                        new CreateInvoiceLine(
+                            x.LineNumber,
+                            x.Description,
+                            x.Quantity,
+                            x.UnitPrice,
+                            x.Discount,
+                            x.LineTotalWithoutTax,
+                            x.Taxes.Select(t =>
+                                new CreateInvoiceLineTax(
+                                    t.TaxCode,
+                                    t.RateCode,
+                                    t.Rate,
+                                    t.TaxableBase,
+                                    t.Value))
+                            .ToList(),
+                            x.MainCode,
+                            x.CatalogItemId,
+                            x.ItemKind))
+                    .ToList(),
+                    request.PaymentFormCode,
+                    request.AdditionalNote,
+                    request.PaymentTermDays),
+                cancellationToken)
+            .ConfigureAwait(false);
 
-            return Created(
-                $"/api/v1/emitters/{emitterId}/invoices/{invoice.Id}",
+        return result switch
+        {
+            CreateInvoiceNotFound notFound => NotFound(notFound.Message),
+            CreateInvoiceBadRequest badRequest => BadRequest(badRequest.Message),
+            CreateInvoiceConflict conflict => Conflict(conflict.Message),
+            CreateInvoiceSuccess success => Created(
+                $"/api/v1/emitters/{emitterId}/invoices/{success.Invoice.Id}",
                 new CreateInvoiceResponse(
-                    invoice.Id,
-                    invoice.State.ToString(),
-                    invoice.SubtotalWithoutTax.Amount,
-                    invoice.GrandTotal.Amount,
-                    invoice.TaxTotals.Select(t =>
+                    success.Invoice.Id,
+                    success.Invoice.State.ToString(),
+                    success.Invoice.SubtotalWithoutTax.Amount,
+                    success.Invoice.GrandTotal.Amount,
+                    success.Invoice.TaxTotals.Select(t =>
                         new InvoiceTaxTotalResponse(t.TaxCode, t.RateCode, t.TaxableBase.Amount, t.Value.Amount))
-                    .ToList()));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+                    .ToList())),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
     }
 
     [HttpPost("{invoiceId:guid}/credit-notes")]

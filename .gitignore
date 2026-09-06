@@ -30,9 +30,15 @@ secrets.json
 # Variables de entorno y credenciales
 .env
 .env.*
+!.env.example
+!**/.env.example
 *.env
 *.local
 *.local.env
+
+# Deploy local overrides
+deploy/**/.env
+!deploy/**/.env.example
 
 # Certificados digitales y llaves privadas (Firma Electrónica SRI)
 *.p12

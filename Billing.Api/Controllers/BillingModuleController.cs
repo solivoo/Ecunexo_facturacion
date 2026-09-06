@@ -1,7 +1,7 @@
 using Ecunexo.Billing.Api.Contracts.Authorization;
 using Ecunexo.Billing.Api.Contracts.Menu;
 using Ecunexo.Billing.Api.Menu;
-using Ecunexo.Billing.Domain.Authorization;
+using Ecunexo.Billing.Core.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecunexo.Billing.Api.Controllers;

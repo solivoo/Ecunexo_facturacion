@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents;
-using Ecunexo.Billing.Domain.Emitter;
-using Ecunexo.Billing.Domain.Emitter.Ports;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents;
+using Ecunexo.Billing.Core.Emitter;
+using Ecunexo.Billing.Core.Emitter.Ports;
 using Ecunexo.Billing.Infrastructure.Ride;
 
 namespace Ecunexo.Billing.Infrastructure.Xml;

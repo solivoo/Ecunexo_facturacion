@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Billing.Domain\Billing.Domain.csproj" />
+    <ProjectReference Include="..\Billing.Core\Billing.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,5 +22,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Billing.Infrastructure.Tests" />
+  </ItemGroup>
 
 </Project>

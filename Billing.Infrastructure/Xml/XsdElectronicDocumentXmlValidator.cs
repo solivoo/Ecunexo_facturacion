@@ -1,6 +1,6 @@
 using System.Xml;
 using System.Xml.Schema;
-using Ecunexo.Billing.Domain.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Ports;
 using Microsoft.Extensions.Logging;
 
 namespace Ecunexo.Billing.Infrastructure.Xml;

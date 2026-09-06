@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Billing.Api\Billing.Api.csproj" />
-    <ProjectReference Include="..\Billing.Domain\Billing.Domain.csproj" />
+    <ProjectReference Include="..\Billing.Core\Billing.Core.csproj" />
   </ItemGroup>
 
 </Project>

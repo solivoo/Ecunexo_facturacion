@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.Sri;
+using Ecunexo.Billing.Core.Sri;
 using Ecunexo.Billing.Infrastructure.Sri;
 
 namespace Ecunexo.Billing.Infrastructure.Tests.Sri;

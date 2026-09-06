@@ -1,5 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
-using Ecunexo.Billing.Domain.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Ports;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

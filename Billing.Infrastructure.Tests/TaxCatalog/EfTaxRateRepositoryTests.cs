@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.TaxCatalog;
+using Ecunexo.Billing.Core.TaxCatalog;
 using Ecunexo.Billing.Infrastructure.Persistence;
 using Ecunexo.Billing.Infrastructure.TaxCatalog.Repositories;
 using Microsoft.EntityFrameworkCore;

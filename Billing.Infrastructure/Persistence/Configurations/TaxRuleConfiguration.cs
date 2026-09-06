@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.TaxRules;
+using Ecunexo.Billing.Core.TaxRules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

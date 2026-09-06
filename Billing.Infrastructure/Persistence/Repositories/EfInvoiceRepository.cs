@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents;
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Sri;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Sri;
 using Ecunexo.Billing.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

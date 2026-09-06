@@ -1,6 +1,6 @@
-using Ecunexo.Billing.Domain.TaxCatalog;
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
-using Ecunexo.Billing.Domain.TaxRules;
+using Ecunexo.Billing.Core.TaxCatalog;
+using Ecunexo.Billing.Core.TaxCatalog.Ports;
+using Ecunexo.Billing.Core.TaxRules;
 using Ecunexo.Billing.Infrastructure.Persistence;
 
 namespace Ecunexo.Billing.Infrastructure.TaxCatalog;

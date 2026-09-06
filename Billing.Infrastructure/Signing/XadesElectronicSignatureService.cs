@@ -1,5 +1,5 @@
 using System.Text;
-using Ecunexo.Billing.Domain.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Ports;
 using Microsoft.Extensions.Logging;
 using Yamgooo.SRI.Sign;
 

@@ -1,6 +1,6 @@
 using System.Text;
 using System.Xml.Linq;
-using Ecunexo.Billing.Domain.Sri;
+using Ecunexo.Billing.Core.Sri;
 
 namespace Ecunexo.Billing.Infrastructure.Sri;
 

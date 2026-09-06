@@ -26,7 +26,7 @@ namespace Billing.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Ecunexo.Billing.Domain.TaxCatalog.TaxRate", b =>
+            modelBuilder.Entity("Ecunexo.Billing.Core.TaxCatalog.TaxRate", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,7 +64,7 @@ namespace Billing.Infrastructure.Persistence.Migrations
                     b.ToTable("TaxRates", "billing");
                 });
 
-            modelBuilder.Entity("Ecunexo.Billing.Domain.TaxCatalog.WithholdingRate", b =>
+            modelBuilder.Entity("Ecunexo.Billing.Core.TaxCatalog.WithholdingRate", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

@@ -1,4 +1,5 @@
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
+using Ecunexo.Billing.Core.TaxCatalog.Ports;
+using Ecunexo.Billing.Infrastructure;
 using Ecunexo.Billing.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

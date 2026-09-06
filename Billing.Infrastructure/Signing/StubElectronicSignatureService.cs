@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Ports;
 
 namespace Ecunexo.Billing.Infrastructure.Signing;
 

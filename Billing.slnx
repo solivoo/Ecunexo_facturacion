@@ -1,8 +1,10 @@
 <Solution>
   <Project Path="Billing.Api.Tests/Billing.Api.Tests.csproj" />
   <Project Path="Billing.Api/Billing.Api.csproj" />
-  <Project Path="Billing.Domain.Tests/Billing.Domain.Tests.csproj" />
-  <Project Path="Billing.Domain/Billing.Domain.csproj" />
+  <Project Path="Billing.Business.Tests/Billing.Business.Tests.csproj" />
+  <Project Path="Billing.Business/Billing.Business.csproj" />
+  <Project Path="Billing.Core.Tests/Billing.Core.Tests.csproj" />
+  <Project Path="Billing.Core/Billing.Core.csproj" />
   <Project Path="Billing.Infrastructure.Tests/Billing.Infrastructure.Tests.csproj" />
   <Project Path="Billing.Infrastructure/Billing.Infrastructure.csproj" />
 </Solution>

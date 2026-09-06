@@ -1,10 +1,10 @@
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Emitter.Ports;
-using Ecunexo.Billing.Domain.Sri.Policies;
-using Ecunexo.Billing.Domain.Sri.Ports;
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
-using Ecunexo.Billing.Domain.TaxRules;
-using Ecunexo.Billing.Domain.TaxRules.Ports;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Emitter.Ports;
+using Ecunexo.Billing.Core.Sri.Policies;
+using Ecunexo.Billing.Core.Sri.Ports;
+using Ecunexo.Billing.Core.TaxCatalog.Ports;
+using Ecunexo.Billing.Core.TaxRules;
+using Ecunexo.Billing.Core.TaxRules.Ports;
 using Ecunexo.Billing.Infrastructure.Persistence;
 using Ecunexo.Billing.Infrastructure.Persistence.Repositories;
 using Ecunexo.Billing.Infrastructure.Secrets.Infisical;

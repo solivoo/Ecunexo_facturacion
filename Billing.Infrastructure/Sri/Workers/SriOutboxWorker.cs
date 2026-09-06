@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents;
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Sri;
-using Ecunexo.Billing.Domain.Sri.Policies;
-using Ecunexo.Billing.Domain.Sri.Ports;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Sri;
+using Ecunexo.Billing.Core.Sri.Policies;
+using Ecunexo.Billing.Core.Sri.Ports;
 using Ecunexo.Billing.Infrastructure.Inventory;
 using Ecunexo.Billing.Infrastructure.Sri;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,7 +1,7 @@
 using System.Text;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Sri;
-using Ecunexo.Billing.Domain.Sri.Ports;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Sri;
+using Ecunexo.Billing.Core.Sri.Ports;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

@@ -1,5 +1,5 @@
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
-using Ecunexo.Billing.Domain.TaxRules.Ports;
+using Ecunexo.Billing.Core.TaxCatalog.Ports;
+using Ecunexo.Billing.Core.TaxRules.Ports;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +15,7 @@ public sealed class BillingApiFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["Billing:DatabaseBootstrap:Enabled"] = "false",
                 ["Sri:UseInMemoryGateway"] = "true",
                 ["Sri:TestEmission:Ruc"] = "",
                 ["Sri:TestEmission:BusinessName"] = "",

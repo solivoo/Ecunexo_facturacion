@@ -1,5 +1,5 @@
-using Ecunexo.Billing.Domain.Emitter;
-using Ecunexo.Billing.Domain.Sri.Ports;
+using Ecunexo.Billing.Core.Emitter;
+using Ecunexo.Billing.Core.Sri.Ports;
 using Ecunexo.Billing.Infrastructure.Ride;
 using Microsoft.Extensions.Options;
 

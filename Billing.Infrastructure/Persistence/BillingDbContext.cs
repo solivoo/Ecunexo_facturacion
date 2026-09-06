@@ -1,5 +1,5 @@
-using Ecunexo.Billing.Domain.TaxCatalog;
-using Ecunexo.Billing.Domain.TaxRules;
+using Ecunexo.Billing.Core.TaxCatalog;
+using Ecunexo.Billing.Core.TaxRules;
 using Ecunexo.Billing.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

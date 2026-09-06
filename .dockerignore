@@ -1,0 +1,35 @@
+# Build context
+**/.git
+**/.vs
+**/.idea
+**/.vscode
+**/bin
+**/obj
+**/TestResults
+**/node_modules
+**/*.user
+**/*.suo
+**/.DS_Store
+
+# Secrets / local config
+**/.env
+**/.env.*
+**/appsettings*.local.json
+**/appsettings.Production.json
+**/appsettings.Staging.json
+**/*.p12
+**/*.pfx
+**/*.pem
+**/*.key
+
+# Docs / tooling not needed in image
+postman/
+docs/
+**/*.md
+!README.md
+
+# Tests (not published into runtime image)
+Billing.Api.Tests/
+Billing.Business.Tests/
+Billing.Core.Tests/
+Billing.Infrastructure.Tests/

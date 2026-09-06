@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.Documents.Ports;
+using Ecunexo.Billing.Core.Documents.Ports;
 using Ecunexo.Billing.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

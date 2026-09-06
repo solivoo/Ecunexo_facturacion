@@ -1,8 +1,8 @@
 using Ecunexo.Billing.Api.Contracts.Emitters;
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents;
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Emitter;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Emitter;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecunexo.Billing.Api.Controllers;

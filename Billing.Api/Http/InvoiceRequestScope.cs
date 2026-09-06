@@ -1,4 +1,4 @@
-using Ecunexo.Billing.Domain.Documents;
+using Ecunexo.Billing.Core.Documents;
 
 namespace Ecunexo.Billing.Api.Http;
 

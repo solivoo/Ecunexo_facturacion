@@ -1,6 +1,6 @@
-using Ecunexo.Billing.Domain;
-using Ecunexo.Billing.Domain.Documents.Ports;
-using Ecunexo.Billing.Domain.Emitter;
+using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Documents.Ports;
+using Ecunexo.Billing.Core.Emitter;
 using Ecunexo.Billing.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 

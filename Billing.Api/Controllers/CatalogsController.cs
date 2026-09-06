@@ -1,7 +1,7 @@
 using Ecunexo.Billing.Api.Contracts.Catalogs;
-using Ecunexo.Billing.Domain.TaxCatalog.Ports;
-using Ecunexo.Billing.Domain.TaxRules;
-using Ecunexo.Billing.Domain.TaxRules.Ports;
+using Ecunexo.Billing.Core.TaxCatalog.Ports;
+using Ecunexo.Billing.Core.TaxRules;
+using Ecunexo.Billing.Core.TaxRules.Ports;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecunexo.Billing.Api.Controllers;

@@ -1,7 +1,0 @@
-{
-  "taxType": "2",
-  "retentionCode": "10",
-  "description": "Retención IVA 70%",
-  "percentage": 70,
-  "validFrom": "2020-01-01"
-}
