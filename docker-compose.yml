@@ -2,6 +2,9 @@
 # Path recomendado en Portainer (Git): docker-compose.yml (raíz del repo)
 #
 # Variables: sección Env de Portainer (ver deploy/portainer/.env.example)
+#
+# BD compartida con Cliente: setear BILLING_CONNECTION_STRING al Postgres de
+# ecunexo_api (Database=ecunexo). El servicio `postgres` local queda opcional.
 
 services:
   postgres:
@@ -10,7 +13,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ecunexo}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unused_when_external}
     volumes:
       - billing_pgdata:/var/lib/postgresql/data
     networks:
@@ -20,6 +23,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    # Solo necesario si NO usas BILLING_CONNECTION_STRING (Postgres externo/Cliente).
+    # En Portainer puedes eliminar este servicio del stack cuando compartes BD.
 
   billing-api:
     build:
@@ -30,13 +35,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
     ports:
       - "${BILLING_HTTP_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: >-
-        Host=postgres;Port=5432;Database=${POSTGRES_DB:-ecunexo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}
+      # Preferir connection string completo (BD Cliente). Si vacío, arma Host=POSTGRES_HOST.
+      ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-ecunexo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
       Billing__DatabaseBootstrap__Enabled: ${BILLING_BOOTSTRAP_ENABLED:-true}
       Billing__DatabaseBootstrap__Migrate: ${BILLING_BOOTSTRAP_MIGRATE:-true}
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}
