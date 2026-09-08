@@ -52,7 +52,7 @@ Connection string local: `Database=billing` (ver `Billing.Api/appsettings.json`)
 1. Stack con compose: `docker-compose.yml` (raíz del repo)
 2. Env desde `deploy/portainer/.env.example`
 3. API: puerto `${BILLING_HTTP_PORT:-8080}` (si 8080 está ocupado, usa otro; el `.env.example` usa `8081`)
-4. La imagen `ecunexo/billing-api` se **build**ea del Dockerfile (no está en Docker Hub). En Portainer usa **Update the stack** / redeploy con rebuild; **no** uses “Pull and redeploy” / “Pull images” o fallará con `pull access denied`.
+4. `billing-api` se **build**ea del Dockerfile (no hay imagen en Docker Hub). En Portainer: Update the stack; puedes quitar la env `BILLING_IMAGE` si la tenías.
 
 ### Base de datos
 
