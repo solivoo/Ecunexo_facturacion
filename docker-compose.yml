@@ -29,7 +29,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # Tag local tras build. NO existe en Docker Hub → no usar "Pull images" en Portainer.
     image: ${BILLING_IMAGE:-ecunexo/billing-api:latest}
+    pull_policy: build
     restart: unless-stopped
     depends_on:
       postgres:
