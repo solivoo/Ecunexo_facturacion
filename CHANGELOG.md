@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- BD propia `billing` (independiente de Cliente); consumo HTTP desde SPA (`VITE_BILLING_API_BASE_URL` + `CORS_ORIGINS`)
+- Compose/env alineados a Postgres del stack; egreso inventario sigue siendo HTTP a Cliente API
+
 ## [1.0.0] — 2026-09-06
 
 Primera versión del sistema de facturación electrónica EcuNexo (SRI Ecuador).

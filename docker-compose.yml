@@ -3,28 +3,27 @@
 #
 # Variables: sección Env de Portainer (ver deploy/portainer/.env.example)
 #
-# BD compartida con Cliente: setear BILLING_CONNECTION_STRING al Postgres de
-# ecunexo_api (Database=ecunexo). El servicio `postgres` local queda opcional.
+# BD propia: Postgres del servicio `postgres` (Database=billing).
+# No compartir la BD del stack Cliente. Integración con Cliente = solo HTTP
+# (SPA → Billing.Api; Billing → Cliente API para egreso inventario).
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ecunexo}
+      POSTGRES_DB: ${POSTGRES_DB:-billing}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unused_when_external}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - billing_pgdata:/var/lib/postgresql/data
     networks:
       - billing
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ecunexo}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-billing}"]
       interval: 10s
       timeout: 5s
       retries: 10
-    # Solo necesario si NO usas BILLING_CONNECTION_STRING (Postgres externo/Cliente).
-    # En Portainer puedes eliminar este servicio del stack cuando compartes BD.
 
   billing-api:
     build:
@@ -35,14 +34,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        required: false
     ports:
       - "${BILLING_HTTP_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
-      # Preferir connection string completo (BD Cliente). Si vacío, arma Host=POSTGRES_HOST.
-      ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-ecunexo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
+      # Orígenes SPA Cliente (coma-separados). Localhost Vite ya van en código.
+      Cors__AllowedOrigins: ${CORS_ORIGINS:-}
+      # Default = Postgres del stack. BILLING_CONNECTION_STRING solo para override raro.
+      ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-billing};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
       Billing__DatabaseBootstrap__Enabled: ${BILLING_BOOTSTRAP_ENABLED:-true}
       Billing__DatabaseBootstrap__Migrate: ${BILLING_BOOTSTRAP_MIGRATE:-true}
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}

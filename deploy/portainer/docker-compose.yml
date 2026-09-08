@@ -2,26 +2,25 @@
 # Build context = raíz del repo (../..)
 #
 # Variables: ver .env.example en este directorio.
-# BD compartida con Cliente: BILLING_CONNECTION_STRING → Postgres de ecunexo_api.
+# BD propia (Database=billing). No apuntar al Postgres del stack Cliente.
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ecunexo}
+      POSTGRES_DB: ${POSTGRES_DB:-billing}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unused_when_external}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - billing_pgdata:/var/lib/postgresql/data
     networks:
       - billing
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ecunexo}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-billing}"]
       interval: 10s
       timeout: 5s
       retries: 10
-    # Opcional si usas BILLING_CONNECTION_STRING (Postgres del stack Cliente).
 
   billing-api:
     build:
@@ -32,13 +31,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        required: false
     ports:
       - "${BILLING_HTTP_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-ecunexo};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
+      Cors__AllowedOrigins: ${CORS_ORIGINS:-}
+      ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-billing};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
       Billing__DatabaseBootstrap__Enabled: ${BILLING_BOOTSTRAP_ENABLED:-true}
       Billing__DatabaseBootstrap__Migrate: ${BILLING_BOOTSTRAP_MIGRATE:-true}
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}

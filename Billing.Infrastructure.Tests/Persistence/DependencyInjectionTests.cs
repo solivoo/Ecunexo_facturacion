@@ -15,7 +15,7 @@ public sealed class DependencyInjectionTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = "Host=localhost;Port=5432;Database=ecunexo;Username=postgres;Password=root"
+                ["ConnectionStrings:Default"] = "Host=localhost;Port=5432;Database=billing;Username=postgres;Password=root"
             })
             .Build();
 

@@ -32,25 +32,34 @@ builder.Services.AddOpenApi(options =>
             Version = "v1.0.0",
             Description =
                 "Facturación electrónica SRI Ecuador. " +
-                "Ver docs/02-funcionalidades-v1.md para el listado de capacidades."
+                "API consumida por la SPA Cliente (HTTP); BD propia `billing`."
         };
         return Task.CompletedTask;
     });
 });
 
+var corsOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175"
+};
+foreach (var origin in (builder.Configuration["Cors:AllowedOrigins"] ?? string.Empty)
+             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+{
+    corsOrigins.Add(origin);
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        "AdminDev",
+        "AdminSpa",
         policy =>
             policy
-                .WithOrigins(
-                    "http://localhost:5173",
-                    "http://localhost:5174",
-                    "http://localhost:5175",
-                    "http://127.0.0.1:5173",
-                    "http://127.0.0.1:5174",
-                    "http://127.0.0.1:5175")
+                .WithOrigins(corsOrigins.ToArray())
                 .AllowAnyHeader()
                 .AllowAnyMethod());
 });
@@ -92,7 +101,7 @@ if (enableApiDocs)
     });
 }
 
-app.UseCors("AdminDev");
+app.UseCors("AdminSpa");
 app.UseAuthorization();
 app.MapControllers();
 
