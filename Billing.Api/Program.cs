@@ -16,6 +16,8 @@ builder.Configuration.AddJsonFile(
     $"appsettings.{builder.Environment.EnvironmentName}.local.json",
     optional: true,
     reloadOnChange: true);
+// Persistencia RIDE (volumen /data en Docker; Data/ en local).
+builder.Configuration.AddJsonFile("/data/ride-provider.json", optional: true, reloadOnChange: true);
 builder.Configuration.AddJsonFile(
     Path.Combine("Data", "ride-provider.json"),
     optional: true,
@@ -61,8 +63,12 @@ builder.Services.AddCors(options =>
             policy
                 .WithOrigins(corsOrigins.ToArray())
                 .AllowAnyHeader()
-                .AllowAnyMethod());
+                .AllowAnyMethod()
+                .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
 });
+
+// CORS también en respuestas de error (si no, el browser solo ve "CORS Missing Allow Origin").
+builder.Services.AddProblemDetails();
 
 var defaultConnection = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("No se encontró ConnectionStrings:Default.");

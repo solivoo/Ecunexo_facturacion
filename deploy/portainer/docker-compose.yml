@@ -57,11 +57,14 @@ services:
       InventoryEgress__Enabled: ${INVENTORY_EGRESS_ENABLED:-false}
       InventoryEgress__BaseUrl: ${INVENTORY_EGRESS_BASE_URL:-}
       InventoryEgress__ApiKey: ${INVENTORY_EGRESS_API_KEY:-}
+    volumes:
+      - billing_ride_data:/data
     networks:
       - billing
 
 volumes:
   billing_pgdata:
+  billing_ride_data:
 
 networks:
   billing:

@@ -24,9 +24,12 @@ WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+RUN mkdir -p /data && chown $APP_UID:$APP_UID /data
+
 EXPOSE 8080
 
 COPY --from=build /app/publish .
 
 USER $APP_UID
+VOLUME ["/data"]
 ENTRYPOINT ["dotnet", "Billing.Api.dll"]

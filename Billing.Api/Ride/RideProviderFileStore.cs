@@ -3,15 +3,32 @@ using Ecunexo.Billing.Infrastructure.Ride;
 
 namespace Ecunexo.Billing.Api.Ride;
 
-public sealed class RideProviderFileStore(IHostEnvironment environment)
+public sealed class RideProviderFileStore(IConfiguration configuration, IHostEnvironment environment)
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
     };
 
-    public string FilePath =>
-        Path.Combine(environment.ContentRootPath, "Data", "ride-provider.json");
+    /// <summary>
+    /// Ruta escribible en contenedor (volumen /data). Evita ContentRoot de solo lectura con USER no-root.
+    /// </summary>
+    public string FilePath
+    {
+        get
+        {
+            var configured = configuration["RideProvider:DataFilePath"]
+                ?? configuration["RIDE_PROVIDER_FILE_PATH"];
+            if (!string.IsNullOrWhiteSpace(configured))
+                return configured.Trim();
+
+            // Preferencia producción Docker: /data montado en compose.
+            if (Directory.Exists("/data") || environment.IsProduction())
+                return "/data/ride-provider.json";
+
+            return Path.Combine(environment.ContentRootPath, "Data", "ride-provider.json");
+        }
+    }
 
     public async Task SaveAsync(RideProviderOptions value, CancellationToken cancellationToken)
     {
@@ -27,6 +44,8 @@ public sealed class RideProviderFileStore(IHostEnvironment environment)
         };
 
         var json = JsonSerializer.Serialize(payload, JsonOptions);
-        await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
+        var tempPath = FilePath + ".tmp";
+        await File.WriteAllTextAsync(tempPath, json, cancellationToken).ConfigureAwait(false);
+        File.Move(tempPath, FilePath, overwrite: true);
     }
 }

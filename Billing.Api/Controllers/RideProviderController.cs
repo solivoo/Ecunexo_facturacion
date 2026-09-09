@@ -43,9 +43,20 @@ public sealed class RideProviderController(
             LegalName = legalName,
             FooterLine = footerLine,
         };
-        await store.SaveAsync(saved, cancellationToken).ConfigureAwait(false);
-        resolver.Replace(saved);
 
+        try
+        {
+            await store.SaveAsync(saved, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return Problem(
+                detail: $"No se pudo persistir el proveedor RIDE ({store.FilePath}): {ex.Message}",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "ride-provider.save_failed");
+        }
+
+        resolver.Replace(saved);
         return Ok(ToResponse(ruc, legalName, footerLine));
     }
 
