@@ -43,6 +43,13 @@ services:
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}
       Sri__UseInMemoryGateway: ${SRI_USE_INMEMORY:-true}
       Sri__DefaultEnvironment: ${SRI_ENVIRONMENT:-Test}
+      # Identidad plataforma en celcer (sustituye RUC del tenant distinto en Test).
+      Sri__TestEmission__Ruc: ${SRI_TEST_EMISSION_RUC:-0926398074001}
+      Sri__TestEmission__BusinessName: ${SRI_TEST_EMISSION_BUSINESS_NAME:-Ecunexo S.A}
+      Sri__TestEmission__MainAddress: ${SRI_TEST_EMISSION_MAIN_ADDRESS:-Guayaquil via Daule}
+      Sri__TestEmission__TradeName: ${SRI_TEST_EMISSION_TRADE_NAME:-EcuNexo}
+      Sri__TestEmission__Establishment: ${SRI_TEST_EMISSION_ESTABLISHMENT:-002}
+      Sri__TestEmission__EmissionPoint: ${SRI_TEST_EMISSION_EMISSION_POINT:-001}
       Infisical__BaseUrl: ${INFISICAL_BASE_URL:-}
       Infisical__WorkspaceId: ${INFISICAL_WORKSPACE_ID:-}
       Infisical__Environment: ${INFISICAL_ENVIRONMENT:-dev}
@@ -61,6 +68,8 @@ services:
       - billing_ride_data:/data
     networks:
       - billing
+      # Red de Nginx Proxy Manager: persiste al redeploy (no adjuntar a mano en Portainer).
+      - proxy
 
 volumes:
   billing_pgdata:
@@ -69,3 +78,6 @@ volumes:
 networks:
   billing:
     driver: bridge
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-nginx_default}
