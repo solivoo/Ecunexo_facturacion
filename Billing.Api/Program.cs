@@ -64,7 +64,7 @@ builder.Services.AddCors(options =>
                 .WithOrigins(corsOrigins.ToArray())
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+                .SetPreflightMaxAge(TimeSpan.FromMinutes(10)));
 });
 
 // CORS también en respuestas de error (si no, el browser solo ve "CORS Missing Allow Origin").
