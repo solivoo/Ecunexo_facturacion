@@ -29,7 +29,6 @@ public sealed class InvoicesController(
     IElectronicCreditNoteXmlGenerator creditNoteXmlGenerator,
     IElectronicDocumentXmlValidator xmlValidator,
     IElectronicSignatureService signatureService,
-    ISigningCertificateProvider signingCertificateProvider,
     ISriGateway sriGateway,
     IOptions<SriOptions> sriOptions,
     RideProviderResolver rideProviderResolver,
@@ -487,8 +486,18 @@ public sealed class InvoicesController(
                 });
             }
 
-            await EnsureInfisicalCertificateBoundAsync(emitter, cancellationToken).ConfigureAwait(false);
-            EmitterSigningValidator.EnsureReadyToSign(emitter);
+            try
+            {
+                EmitterSigningValidator.EnsureReadyToSign(emitter);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return UnprocessableEntity(new
+                {
+                    error = "emitter.signing_certificate_missing_or_invalid",
+                    message = ex.Message,
+                });
+            }
             invoice.MarkSigned(accessKey);
 
             var signedXml = await signatureService.SignXmlAsync(emitterId, xml, cancellationToken)
@@ -800,39 +809,6 @@ public sealed class InvoicesController(
             : NotFound("Emisor o factura no encontrados.");
     }
 
-    private async Task EnsureInfisicalCertificateBoundAsync(
-        Emitter emitter,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            _ = emitter.GetCertificate();
-            return;
-        }
-        catch (InvalidOperationException)
-        {
-        }
-
-        using var cert = await signingCertificateProvider.GetAsync(cancellationToken).ConfigureAwait(false);
-        var storage = CertificateStorageRef.Create(
-            "Infisical",
-            "keyfacturacion",
-            CertificateLocation.Infisical);
-
-        var serial = string.IsNullOrWhiteSpace(cert.SerialNumber)
-            ? "INFISICAL"
-            : cert.SerialNumber;
-
-        var signingCert = SigningCertificate.Create(
-            emitter.Ruc,
-            serial,
-            new DateTimeOffset(DateTime.SpecifyKind(cert.NotBefore, DateTimeKind.Utc)),
-            new DateTimeOffset(DateTime.SpecifyKind(cert.NotAfter, DateTimeKind.Utc)),
-            storage);
-
-        emitter.AssignCertificate(signingCert);
-        await emitterRepository.SaveCertificateAsync(emitter, cancellationToken).ConfigureAwait(false);
-    }
 
     private static InvoiceActionResponse ToActionResponse(
         Guid invoiceId,
