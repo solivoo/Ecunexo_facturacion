@@ -51,8 +51,8 @@ public class SigningCertificate
         if (IsRevoked)
             throw new InvalidOperationException("El certificado está revocado.");
 
-        if (SubjectRuc.Value != emitterRuc.Value)
-            throw new InvalidOperationException("El RUC del certificado no coincide con el emisor.");
+        if (!Services.SriCertificateTaxIdentityValidator.IsTaxIdCompatible(SubjectRuc.Value, emitterRuc.Value))
+            throw new InvalidOperationException($"El RUC del certificado ({SubjectRuc.Value}) no coincide con el RUC del emisor ({emitterRuc.Value}).");
 
         if (DateTimeOffset.UtcNow < NotBefore)
             throw new InvalidOperationException("El certificado aún no entra en vigencia.");

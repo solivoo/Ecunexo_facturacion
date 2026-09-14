@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using System.Security.Cryptography.X509Certificates;
 using Ecunexo.Billing.Core.Emitter.Ports;
+using Ecunexo.Billing.Core.Emitter.Services;
 using Ecunexo.Billing.Infrastructure.Persistence;
 using Ecunexo.Billing.Infrastructure.Secrets.Infisical;
 using Microsoft.EntityFrameworkCore;
@@ -101,7 +102,7 @@ public sealed class DbTenantSigningCertificateProvider
 
         if (dbMaterial is not null)
         {
-            // Validar que el certificado cargado sea válido y tenga clave privada
+            // Validar que el certificado cargado sea válido, vigente y pertenezca al RUC del emisor
             using (var cert = X509CertificateLoader.LoadPkcs12(dbMaterial.PfxBytes, dbMaterial.Password, X509KeyStorageFlags.EphemeralKeySet))
             {
                 if (DateTime.UtcNow > cert.NotAfter)
@@ -110,8 +111,20 @@ public sealed class DbTenantSigningCertificateProvider
                         $"El certificado digital de la empresa '{emitter.BusinessName}' (RUC {emitter.Ruc}) expiró el {cert.NotAfter:u}. Renueve la firma en Ajustes de Empresa.");
                 }
 
+                if (DateTime.UtcNow < cert.NotBefore)
+                {
+                    throw new InvalidOperationException(
+                        $"El certificado digital de la empresa '{emitter.BusinessName}' (RUC {emitter.Ruc}) aún no entra en vigencia ({cert.NotBefore:u}).");
+                }
+
+                // REGLA CORE: El RUC del comprobante / emisor debe coincidir exactamente con la firma electrónica
+                SriCertificateTaxIdentityValidator.EnsureCertificateMatchesEmitter(
+                    cert,
+                    emitter.Ruc,
+                    emitter.Ruc);
+
                 _logger.LogInformation(
-                    "Certificado de firma cargado desde BD tenancy para emisor {Ruc} (Subject={Subject}, NotAfter={NotAfter:u})",
+                    "Certificado de firma cargado y validado OK desde BD tenancy para emisor {Ruc} (Subject={Subject}, NotAfter={NotAfter:u})",
                     emitter.Ruc,
                     cert.Subject,
                     cert.NotAfter);
@@ -123,12 +136,31 @@ public sealed class DbTenantSigningCertificateProvider
 
         if (_infisicalFallback is not null)
         {
-            _logger.LogWarning(
-                "No se encontró firma digital en tenancy.tenant_signing_certificates para {Ruc} (TenantId: {TenantId}). Se recurre al fallback Infisical.",
-                emitter.Ruc,
-                emitter.TenantId);
+            try
+            {
+                var fallbackMaterial = await _infisicalFallback.GetPkcs12Async(cancellationToken).ConfigureAwait(false);
+                using (var fallbackCert = X509CertificateLoader.LoadPkcs12(fallbackMaterial.PfxBytes, fallbackMaterial.Password, X509KeyStorageFlags.EphemeralKeySet))
+                {
+                    if (SriCertificateTaxIdentityValidator.IsCertificateValidForRuc(fallbackCert, emitter.Ruc, out var detectedTaxId, out var reason))
+                    {
+                        _logger.LogInformation(
+                            "Certificado fallback de Infisical validado OK para emisor {Ruc} (Subject={Subject})",
+                            emitter.Ruc,
+                            fallbackCert.Subject);
+                        return fallbackMaterial;
+                    }
 
-            return await _infisicalFallback.GetPkcs12Async(cancellationToken).ConfigureAwait(false);
+                    _logger.LogWarning(
+                        "El certificado en Infisical (RUC/Cédula {Detected}) no coincide con el RUC del emisor {Ruc} ({Reason}). No se puede utilizar como fallback.",
+                        detectedTaxId,
+                        emitter.Ruc,
+                        reason);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Fallback de Infisical no disponible o falló al cargar certificado para emisor {Ruc}", emitter.Ruc);
+            }
         }
 
         throw new InvalidOperationException(

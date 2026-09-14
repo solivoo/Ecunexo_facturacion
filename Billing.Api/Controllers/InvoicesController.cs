@@ -530,10 +530,22 @@ public sealed class InvoicesController(
                     message = ex.Message,
                 });
             }
-            invoice.MarkSigned(accessKey);
+            byte[] signedXml;
+            try
+            {
+                signedXml = await signatureService.SignXmlAsync(emitterId, xml, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return UnprocessableEntity(new
+                {
+                    error = "signing.certificate_ruc_mismatch",
+                    message = ex.Message,
+                });
+            }
 
-            var signedXml = await signatureService.SignXmlAsync(emitterId, xml, cancellationToken)
-                .ConfigureAwait(false);
+            invoice.MarkSigned(accessKey);
             await invoiceRepository.UpdateAfterSignAsync(invoice, xml, signedXml, cancellationToken)
                 .ConfigureAwait(false);
 
