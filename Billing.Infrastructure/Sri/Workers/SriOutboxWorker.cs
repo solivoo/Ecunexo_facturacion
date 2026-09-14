@@ -110,9 +110,11 @@ public sealed class SriOutboxWorker(
         IServiceProvider services,
         CancellationToken cancellationToken)
     {
-        var env = Enum.TryParse<SriEnvironment>(item.Environment, true, out var parsed)
-            ? parsed
-            : SriEnvironment.Test;
+        var env = item.AccessKey is { Length: >= 24 } ak && (ak[23] == '1' || ak[23] == '2')
+            ? (ak[23] == '2' ? SriEnvironment.Production : SriEnvironment.Test)
+            : (Enum.TryParse<SriEnvironment>(item.Environment, true, out var parsed)
+                ? parsed
+                : SriEnvironment.Test);
         var endpoints = opts.ResolveEndpoints(env);
         var endpointKey = item.Operation.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
             ? endpoints.AuthorizationUrl

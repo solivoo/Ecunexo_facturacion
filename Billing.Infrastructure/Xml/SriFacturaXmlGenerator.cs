@@ -27,10 +27,13 @@ public sealed class SriFacturaXmlGenerator : IElectronicInvoiceXmlGenerator
             throw new ArgumentException("La dirección matriz del emisor es obligatoria.", nameof(emitter));
 
         var totalDiscount = invoice.Lines.Sum(l => l.Discount.Amount);
+        var ambiente = accessKey.Value.Length >= 24 && (accessKey.Value[23] == '1' || accessKey.Value[23] == '2')
+            ? accessKey.Value[23].ToString()
+            : (emitter.EnvironmentCode == "2" ? "2" : "1");
 
         var infoTributaria = new XElement(
             "infoTributaria",
-            new XElement("ambiente", emitter.EnvironmentCode),
+            new XElement("ambiente", ambiente),
             new XElement("tipoEmision", emitter.EmissionTypeCode),
             new XElement("razonSocial", Sanitize(emitter.BusinessName)),
             string.IsNullOrWhiteSpace(emitter.TradeName)

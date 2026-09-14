@@ -54,6 +54,12 @@ public sealed class SriOptions
     /// </summary>
     public SriTestEmissionOptions TestEmission { get; set; } = new();
 
+    public SriTestEmissionOptions EmissionIdentity
+    {
+        get => TestEmission;
+        set => TestEmission = value;
+    }
+
     public SriEnvironment ResolveEnvironment() =>
         Enum.TryParse<SriEnvironment>(DefaultEnvironment, ignoreCase: true, out var env)
             ? env

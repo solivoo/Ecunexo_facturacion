@@ -31,10 +31,18 @@ namespace Billing.Infrastructure.Persistence.Migrations
                 nullable: false,
                 defaultValue: "Production");
 
-            migrationBuilder.DropIndex(
-                name: "IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_DocumentType_Sequential",
-                schema: "billing",
-                table: "electronic_invoices");
+            migrationBuilder.Sql("""
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'billing' AND tablename = 'electronic_invoices' AND indexname = 'IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_D~') THEN
+                        DROP INDEX billing."IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_D~";
+                    ELSIF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'billing' AND tablename = 'electronic_invoices' AND indexname = 'IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_DocumentType_Sequential') THEN
+                        DROP INDEX billing."IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_DocumentType_Sequential";
+                    ELSIF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'billing' AND tablename = 'electronic_invoices' AND indexname LIKE 'IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_%') THEN
+                        EXECUTE (SELECT 'DROP INDEX billing.' || quote_ident(indexname) FROM pg_indexes WHERE schemaname = 'billing' AND tablename = 'electronic_invoices' AND indexname LIKE 'IX_electronic_invoices_EmitterId_Establishment_EmissionPoint_%' LIMIT 1);
+                    END IF;
+                END $$;
+            """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_electronic_invoices_EmitterId_Environment_Establishment_EmissionPoint_DocumentType_Sequential",

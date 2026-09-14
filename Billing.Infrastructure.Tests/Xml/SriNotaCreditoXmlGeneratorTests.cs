@@ -109,4 +109,58 @@ public class SriNotaCreditoXmlGeneratorTests
         public IReadOnlyList<TaxRate> GetActiveByTaxCode(string taxCode, DateOnly date) =>
             _rates.Where(r => r.TaxCode == taxCode && r.IsActiveOn(date)).ToList();
     }
+
+    [Fact(DisplayName = "XML nota de crédito genera <ambiente>2</ambiente> cuando clave es producción")]
+    public void BuildXml_WritesAmbiente2_WhenAccessKeyIsProduction()
+    {
+        var note = BuildAuthorizedCreditNote();
+        var accessKey = ClaveAcceso.Create(new ClaveAccesoComponents(
+            note.IssueDate,
+            note.DocumentType,
+            note.EmitterRuc,
+            "2",
+            note.Establishment,
+            note.EmissionPoint,
+            note.Sequential,
+            12345678,
+            "1"));
+        note.MarkSigned(accessKey);
+
+        var xml = new SriNotaCreditoXmlGenerator().BuildXml(
+            note,
+            new InvoiceXmlEmitterContext("Everchic", "Guayaquil", "Everchic"),
+            accessKey);
+        var xmlText = System.Text.Encoding.UTF8.GetString(xml);
+
+        Assert.Equal('2', accessKey.Value[23]);
+        Assert.Contains("<ambiente>2</ambiente>", xmlText);
+        Assert.DoesNotContain("<ambiente>1</ambiente>", xmlText);
+    }
+
+    [Fact(DisplayName = "XML nota de crédito genera <ambiente>1</ambiente> cuando clave es pruebas")]
+    public void BuildXml_WritesAmbiente1_WhenAccessKeyIsTest()
+    {
+        var note = BuildAuthorizedCreditNote();
+        var accessKey = ClaveAcceso.Create(new ClaveAccesoComponents(
+            note.IssueDate,
+            note.DocumentType,
+            note.EmitterRuc,
+            "1",
+            note.Establishment,
+            note.EmissionPoint,
+            note.Sequential,
+            12345678,
+            "1"));
+        note.MarkSigned(accessKey);
+
+        var xml = new SriNotaCreditoXmlGenerator().BuildXml(
+            note,
+            new InvoiceXmlEmitterContext("Everchic", "Guayaquil", "Everchic"),
+            accessKey);
+        var xmlText = System.Text.Encoding.UTF8.GetString(xml);
+
+        Assert.Equal('1', accessKey.Value[23]);
+        Assert.Contains("<ambiente>1</ambiente>", xmlText);
+        Assert.DoesNotContain("<ambiente>2</ambiente>", xmlText);
+    }
 }

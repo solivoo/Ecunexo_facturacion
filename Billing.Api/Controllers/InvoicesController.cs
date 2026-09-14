@@ -490,7 +490,20 @@ public sealed class InvoicesController(
                 : invoice.Environment;
             var envCode = env == SriEnvironment.Production ? "2" : "1";
 
-            var accessKey = BuildAccessKey(invoice, env);
+            // Invariante estricto de ambiente: validar que posición 24 (índice 23) coincida con envCode.
+            // Si la clave previa tenía otro ambiente (p. ej. '1' en vez de '2'), se regenera antes de firmar.
+            var accessKey = (invoice.AccessKey is not null
+                             && invoice.AccessKey.Value.Length == 49
+                             && invoice.AccessKey.Value[23] == envCode[0])
+                ? invoice.AccessKey
+                : BuildAccessKey(invoice, env);
+
+            if (accessKey.Value.Length != 49 || accessKey.Value[23] != envCode[0])
+            {
+                accessKey = BuildAccessKey(invoice, env);
+            }
+
+            invoice.SetEnvironment(env);
             var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
             var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
 
@@ -624,13 +637,17 @@ public sealed class InvoicesController(
         if (signed is null)
             return Conflict("La factura debe estar firmada antes de enviarse a recepción.");
 
-        var env = ResolveSriEnvironment(environment);
-        var result = await sriGateway.SendReceptionAsync(env, signed, cancellationToken).ConfigureAwait(false);
-
         var invoice = await invoiceRepository.GetDomainAsync(emitterId, invoiceId, cancellationToken)
             .ConfigureAwait(false);
         if (invoice is null)
             return NotFound("Factura no encontrada.");
+
+        var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && (ak[23] == '1' || ak[23] == '2')
+            ? (ak[23] == '2' ? SriEnvironment.Production : SriEnvironment.Test)
+            : (!string.IsNullOrWhiteSpace(environment)
+                ? ResolveSriEnvironment(environment)
+                : invoice.Environment);
+        var result = await sriGateway.SendReceptionAsync(env, signed, cancellationToken).ConfigureAwait(false);
 
         if (result.State is SriTransmissionState.Received)
         {
@@ -674,6 +691,7 @@ public sealed class InvoicesController(
 
         if (invoice.AccessKey is null)
             return Conflict("La factura no tiene clave de acceso. Debe firmarse primero.");
+        var accessKey = invoice.AccessKey;
 
         if (invoice.State is SriDocumentState.Received)
         {
@@ -686,9 +704,13 @@ public sealed class InvoicesController(
         if (delaySeconds > 0)
             await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken).ConfigureAwait(false);
 
-        var env = ResolveSriEnvironment(environment);
+        var env = accessKey.Value is { Length: >= 24 } ak && (ak[23] == '1' || ak[23] == '2')
+            ? (ak[23] == '2' ? SriEnvironment.Production : SriEnvironment.Test)
+            : (!string.IsNullOrWhiteSpace(environment)
+                ? ResolveSriEnvironment(environment)
+                : invoice.Environment);
         var result = await sriGateway
-            .QueryAuthorizationAsync(env, invoice.AccessKey, cancellationToken)
+            .QueryAuthorizationAsync(env, accessKey, cancellationToken)
             .ConfigureAwait(false);
 
         if (result.State is SriTransmissionState.Authorized)

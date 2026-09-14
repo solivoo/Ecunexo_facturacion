@@ -19,6 +19,8 @@ public abstract class ElectronicDocument
 
     protected ElectronicDocument() { }
 
+    public void SetEnvironment(Sri.SriEnvironment env) => Environment = env;
+
     public void MarkSigned(ClaveAcceso accessKey)
     {
         if (State != SriDocumentState.Draft)

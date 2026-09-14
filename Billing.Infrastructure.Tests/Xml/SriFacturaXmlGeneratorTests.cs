@@ -186,4 +186,96 @@ public class SriFacturaXmlGeneratorTests
         var result = validator.Validate(xml, ElectronicDocumentSchema.FacturaV110);
         Assert.True(result.IsValid, string.Join(" | ", result.Errors));
     }
+
+    [Fact(DisplayName = "XML factura genera <ambiente>2</ambiente> cuando clave es producción")]
+    public void BuildXml_WritesAmbiente2_WhenAccessKeyIsProduction()
+    {
+        var line = new InvoiceLine(
+            1,
+            "Servicio producción",
+            1m,
+            new Money(100m),
+            Money.Zero,
+            new Money(100m),
+            [new LineTax("2", "4", 15m, new Money(100m), new Money(15m))]);
+
+        var invoice = ElectronicInvoice.Create(
+            Ruc.Create("0993397804001"),
+            EstablishmentCode.Create("001"),
+            EmissionPoint.Create("001"),
+            SequentialNumber.Create("000000534"),
+            new DateOnly(2026, 9, 14),
+            Counterparty.Create("04", "0999999999001", "Cliente Prod SA", "Guayaquil"),
+            [line],
+            BuildTaxRepo());
+
+        // Clave de Acceso con ambiente = "2" (Producción) en componente y posición 24 (index 23)
+        var accessKey = ClaveAcceso.Create(new ClaveAccesoComponents(
+            invoice.IssueDate,
+            invoice.DocumentType,
+            invoice.EmitterRuc,
+            "2",
+            invoice.Establishment,
+            invoice.EmissionPoint,
+            invoice.Sequential,
+            12345678,
+            "1"));
+        invoice.MarkSigned(accessKey);
+
+        var xml = new SriFacturaXmlGenerator().BuildXml(
+            invoice,
+            new InvoiceXmlEmitterContext("Everchic", "Guayaquil", "Everchic"),
+            accessKey);
+        var xmlText = System.Text.Encoding.UTF8.GetString(xml);
+
+        Assert.Equal('2', accessKey.Value[23]);
+        Assert.Contains("<ambiente>2</ambiente>", xmlText);
+        Assert.DoesNotContain("<ambiente>1</ambiente>", xmlText);
+    }
+
+    [Fact(DisplayName = "XML factura genera <ambiente>1</ambiente> cuando clave es pruebas")]
+    public void BuildXml_WritesAmbiente1_WhenAccessKeyIsTest()
+    {
+        var line = new InvoiceLine(
+            1,
+            "Servicio pruebas",
+            1m,
+            new Money(100m),
+            Money.Zero,
+            new Money(100m),
+            [new LineTax("2", "4", 15m, new Money(100m), new Money(15m))]);
+
+        var invoice = ElectronicInvoice.Create(
+            Ruc.Create("0993397804001"),
+            EstablishmentCode.Create("001"),
+            EmissionPoint.Create("001"),
+            SequentialNumber.Create("000000001"),
+            new DateOnly(2026, 9, 14),
+            Counterparty.Create("04", "0999999999001", "Cliente Test SA", "Guayaquil"),
+            [line],
+            BuildTaxRepo());
+
+        // Clave de Acceso con ambiente = "1" (Pruebas) en componente y posición 24 (index 23)
+        var accessKey = ClaveAcceso.Create(new ClaveAccesoComponents(
+            invoice.IssueDate,
+            invoice.DocumentType,
+            invoice.EmitterRuc,
+            "1",
+            invoice.Establishment,
+            invoice.EmissionPoint,
+            invoice.Sequential,
+            12345678,
+            "1"));
+        invoice.MarkSigned(accessKey);
+
+        var xml = new SriFacturaXmlGenerator().BuildXml(
+            invoice,
+            new InvoiceXmlEmitterContext("Everchic", "Guayaquil", "Everchic"),
+            accessKey);
+        var xmlText = System.Text.Encoding.UTF8.GetString(xml);
+
+        Assert.Equal('1', accessKey.Value[23]);
+        Assert.Contains("<ambiente>1</ambiente>", xmlText);
+        Assert.DoesNotContain("<ambiente>2</ambiente>", xmlText);
+    }
 }

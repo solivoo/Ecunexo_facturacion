@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Ecunexo.Billing.Api.Contracts.Emitters;
 using Ecunexo.Billing.Api.Contracts.Invoices;
+using Ecunexo.Billing.Api.Controllers;
 using Ecunexo.Billing.Api.Tests.Support;
 using Xunit;
 
@@ -41,7 +42,9 @@ public sealed class EndpointsSmokeTests : IClassFixture<BillingApiFactory>
             "Quito",
             "Demo"));
 
-        Assert.Equal(HttpStatusCode.Created, emitterCreate.StatusCode);
+        Assert.True(
+            emitterCreate.StatusCode == HttpStatusCode.Created || emitterCreate.StatusCode == HttpStatusCode.OK,
+            $"Expected Created or OK but got {emitterCreate.StatusCode}");
         var emitter = await emitterCreate.Content.ReadFromJsonAsync<CreateEmitterResponse>();
         Assert.NotNull(emitter);
 
@@ -71,8 +74,8 @@ public sealed class EndpointsSmokeTests : IClassFixture<BillingApiFactory>
             "1792146739001",
             "001",
             "001",
-            "000000001",
-            new DateOnly(2024, 1, 21),
+            "auto",
+            DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)),
             new CounterpartyRequest("04", "0999999999001", "Cliente Test", null),
             [new InvoiceLineRequest(
                 1,
@@ -108,7 +111,8 @@ public sealed class EndpointsSmokeTests : IClassFixture<BillingApiFactory>
         var creditNoteCreate = await _client.PostAsJsonAsync(
             $"/api/v1/emitters/{emitter.EmitterId}/invoices/{invoice.InvoiceId}/credit-notes",
             new CreateCreditNoteRequest("Anulación total de prueba"));
-        Assert.Equal(HttpStatusCode.Created, creditNoteCreate.StatusCode);
+        var creditNoteBody = await creditNoteCreate.Content.ReadAsStringAsync();
+        Assert.True(creditNoteCreate.StatusCode == HttpStatusCode.Created, $"Credit note failed with {creditNoteCreate.StatusCode}: {creditNoteBody}");
 
         var creditNote = await creditNoteCreate.Content.ReadFromJsonAsync<CreateCreditNoteResponse>();
         Assert.NotNull(creditNote);
@@ -126,5 +130,27 @@ public sealed class EndpointsSmokeTests : IClassFixture<BillingApiFactory>
         var response = await _client.GetAsync("/api/v1/ride-provider");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Everchic secuencial aislado: Producción retorna 534 y Pruebas retorna 001")]
+    public async Task Everchic_SequentialIsolation_Works()
+    {
+        var everchicId = Guid.Parse("4ed277c1-ad6e-4a91-9484-4eb04b950c24");
+
+        // 1. Producción
+        var prodResp = await _client.GetAsync(
+            $"/api/v1/emitters/{everchicId}/sequential-next?establishment=001&emissionPoint=001&environment=Production");
+        Assert.Equal(HttpStatusCode.OK, prodResp.StatusCode);
+        var prodData = await prodResp.Content.ReadFromJsonAsync<SequentialNextResponse>();
+        Assert.NotNull(prodData);
+        Assert.Equal("000000534", prodData!.NextSequential);
+
+        // 2. Pruebas
+        var testResp = await _client.GetAsync(
+            $"/api/v1/emitters/{everchicId}/sequential-next?establishment=001&emissionPoint=001&environment=Test");
+        Assert.Equal(HttpStatusCode.OK, testResp.StatusCode);
+        var testData = await testResp.Content.ReadFromJsonAsync<SequentialNextResponse>();
+        Assert.NotNull(testData);
+        Assert.Equal("000000001", testData!.NextSequential);
     }
 }

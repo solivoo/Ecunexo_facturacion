@@ -80,6 +80,7 @@ public sealed class EfInvoiceRepository(BillingDbContext db) : IInvoiceRepositor
             .ConfigureAwait(false)
             ?? throw new InvalidOperationException("Factura no encontrada.");
 
+        entity.Environment = document.Environment.ToString();
         entity.State = document.State.ToString();
         entity.AccessKey = document.AccessKey?.Value;
         entity.UpdatedAt = DateTimeOffset.UtcNow;
