@@ -143,7 +143,13 @@ public sealed class DbTenantSigningCertificateProvider
         try
         {
             var adminDbConnStr = _configuration.GetConnectionString("AdminDb")
-                ?? _configuration.GetConnectionString("Tenancy");
+                ?? _configuration.GetConnectionString("Tenancy")
+                ?? _configuration["ConnectionStrings__AdminDb"]
+                ?? _configuration["ADMIN_DB_CONNECTION_STRING"]
+                ?? _configuration["TENANCY_DB_CONNECTION_STRING"]
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings__AdminDb")
+                ?? Environment.GetEnvironmentVariable("ADMIN_DB_CONNECTION_STRING")
+                ?? Environment.GetEnvironmentVariable("TENANCY_DB_CONNECTION_STRING");
 
             DbConnection conn;
             bool shouldDisposeConn = false;

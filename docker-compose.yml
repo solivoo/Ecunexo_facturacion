@@ -43,6 +43,7 @@ services:
       Cors__AllowedOrigins: ${CORS_ORIGINS:-}
       # Default = Postgres del stack. BILLING_CONNECTION_STRING solo para override raro.
       ConnectionStrings__Default: ${BILLING_CONNECTION_STRING:-Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-billing};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}}
+      ConnectionStrings__AdminDb: ${ADMIN_DB_CONNECTION_STRING:-Host=ecunexo-cliente-postgres-1;Port=5432;Database=ecunexo;Username=ecunexo;Password=KaCr5vPaPFQVbv}
       Billing__DatabaseBootstrap__Enabled: ${BILLING_BOOTSTRAP_ENABLED:-true}
       Billing__DatabaseBootstrap__Migrate: ${BILLING_BOOTSTRAP_MIGRATE:-true}
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}
@@ -76,6 +77,8 @@ services:
       - billing
       # Red de Nginx Proxy Manager: persiste al redeploy (no adjuntar a mano en Portainer).
       - proxy
+      # Red de stack Cliente para consultar certificados digitales en tenancy
+      - cliente
 
 volumes:
   billing_pgdata:
@@ -87,3 +90,6 @@ networks:
   proxy:
     external: true
     name: ${PROXY_NETWORK:-nginx_default}
+  cliente:
+    external: true
+    name: ${CLIENTE_NETWORK:-ecunexo-cliente_cliente}
