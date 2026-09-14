@@ -4,7 +4,6 @@ using System.Security.Cryptography.X509Certificates;
 using Ecunexo.Billing.Core.Emitter.Ports;
 using Ecunexo.Billing.Core.Emitter.Services;
 using Ecunexo.Billing.Infrastructure.Persistence;
-using Ecunexo.Billing.Infrastructure.Secrets.Infisical;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +14,6 @@ namespace Ecunexo.Billing.Infrastructure.Signing;
 /// <summary>
 /// Proveedor de firma digital que consulta y descifra el archivo .p12
 /// directamente desde la tabla <c>tenancy.tenant_signing_certificates</c> de la base de datos de administración.
-/// Si no existe certificado en base de datos, recurre a Infisical como fallback secundario.
 /// </summary>
 public sealed class DbTenantSigningCertificateProvider
     : ISigningPkcs12MaterialProvider, ISigningCertificateProvider
@@ -24,20 +22,17 @@ public sealed class DbTenantSigningCertificateProvider
     private readonly IConfiguration _configuration;
     private readonly IMemoryCache _cache;
     private readonly ILogger<DbTenantSigningCertificateProvider> _logger;
-    private readonly InfisicalSigningCertificateProvider? _infisicalFallback;
 
     public DbTenantSigningCertificateProvider(
         BillingDbContext db,
         IConfiguration configuration,
         IMemoryCache cache,
-        ILogger<DbTenantSigningCertificateProvider> logger,
-        InfisicalSigningCertificateProvider? infisicalFallback = null)
+        ILogger<DbTenantSigningCertificateProvider> logger)
     {
         _db = db;
         _configuration = configuration;
         _cache = cache;
         _logger = logger;
-        _infisicalFallback = infisicalFallback;
     }
 
     public async Task<X509Certificate2> GetAsync(CancellationToken cancellationToken = default)
@@ -51,18 +46,6 @@ public sealed class DbTenantSigningCertificateProvider
 
     public async Task<SigningPkcs12Material> GetPkcs12Async(CancellationToken cancellationToken = default)
     {
-        if (_infisicalFallback is not null)
-        {
-            try
-            {
-                return await _infisicalFallback.GetPkcs12Async(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Fallback de Infisical falló en GetPkcs12Async. Intentando resolver desde BD tenancy.");
-            }
-        }
-
         var firstEmitter = await _db.Emitters
             .AsNoTracking()
             .FirstOrDefaultAsync(cancellationToken)
@@ -132,35 +115,6 @@ public sealed class DbTenantSigningCertificateProvider
 
             _cache.Set(cacheKey, dbMaterial, TimeSpan.FromMinutes(15));
             return dbMaterial;
-        }
-
-        if (_infisicalFallback is not null)
-        {
-            try
-            {
-                var fallbackMaterial = await _infisicalFallback.GetPkcs12Async(cancellationToken).ConfigureAwait(false);
-                using (var fallbackCert = X509CertificateLoader.LoadPkcs12(fallbackMaterial.PfxBytes, fallbackMaterial.Password, X509KeyStorageFlags.EphemeralKeySet))
-                {
-                    if (SriCertificateTaxIdentityValidator.IsCertificateValidForRuc(fallbackCert, emitter.Ruc, out var detectedTaxId, out var reason))
-                    {
-                        _logger.LogInformation(
-                            "Certificado fallback de Infisical validado OK para emisor {Ruc} (Subject={Subject})",
-                            emitter.Ruc,
-                            fallbackCert.Subject);
-                        return fallbackMaterial;
-                    }
-
-                    _logger.LogWarning(
-                        "El certificado en Infisical (RUC/Cédula {Detected}) no coincide con el RUC del emisor {Ruc} ({Reason}). No se puede utilizar como fallback.",
-                        detectedTaxId,
-                        emitter.Ruc,
-                        reason);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Fallback de Infisical no disponible o falló al cargar certificado para emisor {Ruc}", emitter.Ruc);
-            }
         }
 
         throw new InvalidOperationException(

@@ -6,6 +6,8 @@ public enum CertificateLocation
     KeyVault,
     EncryptedFile,
     UsbToken,
-    /// <summary>Almacén de secretos Infisical (autohospedado o cloud).</summary>
+    /// <summary>Base de datos de administración cifrada (AES-256-GCM).</summary>
+    Database,
+    [Obsolete("Ya no se utiliza Infisical.")]
     Infisical,
 }

@@ -9,7 +9,7 @@ using Yamgooo.SRI.Sign;
 namespace Ecunexo.Billing.Infrastructure.Signing;
 
 /// <summary>
-/// Firma XML con XAdES-BES (enveloped) usando el PKCS#12 de Infisical vía Yamgooo.SRI.Sign.
+/// Firma XML con XAdES-BES (enveloped) usando el PKCS#12 provisto vía Yamgooo.SRI.Sign.
 /// </summary>
 public sealed class XadesElectronicSignatureService : IElectronicSignatureService
 {

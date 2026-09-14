@@ -1,7 +1,6 @@
 {
-  "Infisical": {
-    "ClientId": "PEGAR_CLIENT_ID_AQUI",
-    "ClientSecret": "PEGAR_CLIENT_SECRET_AQUI"
+  "ConnectionStrings": {
+    "AdminDb": "Host=localhost;Port=5432;Database=ecunexo;Username=ecunexo;Password=CHANGE_ME"
   },
   "Sri": {
     "UseInMemoryGateway": false,

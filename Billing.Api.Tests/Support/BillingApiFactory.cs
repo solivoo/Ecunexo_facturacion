@@ -20,7 +20,6 @@ public sealed class BillingApiFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:Default"] = "Host=localhost;Port=5432;Database=ecunexo;Username=postgres;Password=root",
                 ["Billing:DatabaseBootstrap:Enabled"] = "false",
-                ["Infisical:BaseUrl"] = "http://localhost:8080",
                 ["Sri:UseInMemoryGateway"] = "true",
                 ["Sri:AuthorizationPollDelaySeconds"] = "0",
                 ["Sri:TestEmission:Ruc"] = "",
