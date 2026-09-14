@@ -14,13 +14,14 @@ public sealed class SriEmissionIdentityResolver(IOptions<SriOptions> options) : 
     public SriEmissionIdentity Resolve(
         Emitter emitter,
         string? requestedEstablishment,
-        string? requestedEmissionPoint)
+        string? requestedEmissionPoint,
+        SriEnvironment? environmentOverride = null)
     {
         ArgumentNullException.ThrowIfNull(emitter);
 
         var sri = options.Value;
         var test = sri.TestEmission;
-        var environment = sri.ResolveEnvironment();
+        var environment = environmentOverride ?? sri.ResolveEnvironment();
 
         if (environment is SriEnvironment.Test
             && test.IsConfigured()

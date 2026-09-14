@@ -10,5 +10,6 @@ public interface ISriEmissionIdentityResolver
     SriEmissionIdentity Resolve(
         EmitterAgg emitter,
         string? requestedEstablishment,
-        string? requestedEmissionPoint);
+        string? requestedEmissionPoint,
+        SriEnvironment? environmentOverride = null);
 }

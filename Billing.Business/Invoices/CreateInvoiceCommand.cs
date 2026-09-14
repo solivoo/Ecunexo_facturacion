@@ -12,7 +12,8 @@ public sealed record CreateInvoiceCommand(
     string? PaymentFormCode,
     string? AdditionalNote,
     int PaymentTermDays,
-    string? RequestedSequential = null);
+    string? RequestedSequential = null,
+    string? Environment = null);
 
 public sealed record CreateInvoiceCounterparty(
     string IdentificationType,

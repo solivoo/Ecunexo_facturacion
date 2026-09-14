@@ -24,10 +24,16 @@ public sealed class CreateInvoiceService(
 
         try
         {
+            var targetEnv = !string.IsNullOrWhiteSpace(command.Environment) &&
+                Enum.TryParse<Ecunexo.Billing.Core.Sri.SriEnvironment>(command.Environment, true, out var parsedEnv)
+                ? parsedEnv
+                : (Ecunexo.Billing.Core.Sri.SriEnvironment?)null;
+
             var identity = emissionIdentity.Resolve(
                 emitter,
                 command.Establishment,
-                command.EmissionPoint);
+                command.EmissionPoint,
+                targetEnv);
 
             string estabCode;
             string ptoCode;

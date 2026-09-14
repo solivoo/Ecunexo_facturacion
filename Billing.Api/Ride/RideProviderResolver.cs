@@ -38,13 +38,15 @@ public sealed class RideProviderResolver(
         return new RideProviderInfo(ResolveRuc(emitterRuc), name, footer);
     }
 
-    public InvoiceXmlEmitterContext ToXmlContext(Emitter emitter)
+    public InvoiceXmlEmitterContext ToXmlContext(Emitter emitter, string environmentCode = "1")
     {
-        var emission = emissionIdentity.Resolve(emitter, null, null);
+        var targetEnv = environmentCode == "2" ? Ecunexo.Billing.Core.Sri.SriEnvironment.Production : Ecunexo.Billing.Core.Sri.SriEnvironment.Test;
+        var emission = emissionIdentity.Resolve(emitter, null, null, targetEnv);
         return new InvoiceXmlEmitterContext(
             emission.BusinessName,
             emission.MainAddress,
             emission.TradeName,
+            EnvironmentCode: environmentCode,
             SoftwareProviderRuc: ResolveRuc(emitter.Ruc.Value));
     }
 }

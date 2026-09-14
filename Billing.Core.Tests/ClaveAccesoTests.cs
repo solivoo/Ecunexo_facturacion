@@ -79,4 +79,15 @@ public class ClaveAccesoTests
 
         Assert.NotEqual(a.Value, b.Value);
     }
+
+    [Fact(DisplayName = "Posición 24: código de ambiente (1=Pruebas, 2=Producción)")]
+    public void Create_ProductionEnvironment_ShouldHave2AtPosition24()
+    {
+        var clavePruebas = ClaveAcceso.Create(BuildComponents(ambiente: "1"));
+        var claveProd = ClaveAcceso.Create(BuildComponents(ambiente: "2"));
+
+        Assert.Equal("1", clavePruebas.Value[23..24]);
+        Assert.Equal("2", claveProd.Value[23..24]);
+        Assert.NotEqual(clavePruebas.Value, claveProd.Value);
+    }
 }

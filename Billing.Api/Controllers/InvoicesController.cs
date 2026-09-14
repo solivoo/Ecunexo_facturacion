@@ -255,8 +255,12 @@ public sealed class InvoicesController(
         }
         else
         {
-            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter);
+            var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
+                ? SriEnvironment.Production
+                : SriEnv;
+            var envCode = env == SriEnvironment.Production ? "2" : "1";
+            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             xmlText = System.Text.Encoding.UTF8.GetString(xml);
         }
@@ -318,7 +322,8 @@ public sealed class InvoicesController(
                     request.PaymentFormCode,
                     request.AdditionalNote,
                     request.PaymentTermDays,
-                    requestedSeq),
+                    requestedSeq,
+                    request.Environment),
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -478,8 +483,15 @@ public sealed class InvoicesController(
 
         try
         {
-            var accessKey = BuildAccessKey(invoice);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter);
+            var env = !string.IsNullOrWhiteSpace(environment)
+                ? ResolveSriEnvironment(environment)
+                : (invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
+                    ? SriEnvironment.Production
+                    : ResolveSriEnvironment(environment));
+            var envCode = env == SriEnvironment.Production ? "2" : "1";
+
+            var accessKey = BuildAccessKey(invoice, env);
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
 
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             var validation = xmlValidator.Validate(xml, SchemaOf(invoice));
@@ -511,7 +523,6 @@ public sealed class InvoicesController(
             await invoiceRepository.UpdateAfterSignAsync(invoice, xml, signedXml, cancellationToken)
                 .ConfigureAwait(false);
 
-            var env = ResolveSriEnvironment(environment);
             await outboxRepository
                 .EnqueueAsync(
                     invoice.Id,
@@ -547,6 +558,7 @@ public sealed class InvoicesController(
     public async Task<ActionResult> PreviewXml(
         Guid emitterId,
         Guid invoiceId,
+        [FromQuery] string? environment,
         CancellationToken cancellationToken)
     {
         var denied = await RejectIfCannotViewAsync(invoiceId, cancellationToken).ConfigureAwait(false);
@@ -562,8 +574,13 @@ public sealed class InvoicesController(
 
         try
         {
-            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter);
+            var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
+                ? SriEnvironment.Production
+                : ResolveSriEnvironment(environment);
+            var envCode = env == SriEnvironment.Production ? "2" : "1";
+
+            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
 
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             var validation = xmlValidator.Validate(xml, SchemaOf(invoice));
@@ -709,6 +726,7 @@ public sealed class InvoicesController(
     public async Task<ActionResult<InvoiceActionResponse>> RetrySri(
         Guid emitterId,
         Guid invoiceId,
+        [FromQuery] string? environment = null,
         CancellationToken cancellationToken = default)
     {
         var denied = await RejectIfCannotViewAsync(invoiceId, cancellationToken).ConfigureAwait(false);
@@ -744,7 +762,9 @@ public sealed class InvoicesController(
         var operation = InvoiceSriResendRules.ResolveOutboxOperation(
             invoice.State,
             messages.Select(m => m.Identifier));
-        var env = SriEnv;
+        var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
+            ? SriEnvironment.Production
+            : ResolveSriEnvironment(environment);
         try
         {
             await outboxRepository
@@ -874,14 +894,15 @@ public sealed class InvoicesController(
         return $"{prefix} {detail}";
     }
 
-    private static ClaveAcceso BuildAccessKey(ElectronicDocument invoice)
+    private static ClaveAcceso BuildAccessKey(ElectronicDocument invoice, SriEnvironment environment = SriEnvironment.Test)
     {
         var random = Random.Shared.Next(10000000, 99999999);
+        var envCode = environment == SriEnvironment.Production ? "2" : "1";
         return ClaveAcceso.Create(new ClaveAccesoComponents(
             invoice.IssueDate,
             invoice.DocumentType,
             invoice.EmitterRuc,
-            "1",
+            envCode,
             invoice.Establishment,
             invoice.EmissionPoint,
             invoice.Sequential,

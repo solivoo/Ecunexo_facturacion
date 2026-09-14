@@ -10,7 +10,8 @@ public sealed record CreateInvoiceRequest(
     IReadOnlyList<InvoiceLineRequest> Lines,
     string? PaymentFormCode = null,
     string? AdditionalNote = null,
-    int PaymentTermDays = 0);
+    int PaymentTermDays = 0,
+    string? Environment = null);
 
 public sealed record CounterpartyRequest(
     string IdentificationType,

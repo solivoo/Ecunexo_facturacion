@@ -12,7 +12,8 @@ internal sealed class PassthroughEmissionIdentityResolver : ISriEmissionIdentity
     public SriEmissionIdentity Resolve(
         Emitter emitter,
         string? requestedEstablishment,
-        string? requestedEmissionPoint)
+        string? requestedEmissionPoint,
+        SriEnvironment? environmentOverride = null)
     {
         if (ResolveOverride is not null)
             return ResolveOverride(emitter, requestedEstablishment, requestedEmissionPoint);
