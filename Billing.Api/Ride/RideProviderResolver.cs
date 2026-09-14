@@ -38,15 +38,30 @@ public sealed class RideProviderResolver(
         return new RideProviderInfo(ResolveRuc(emitterRuc), name, footer);
     }
 
-    public InvoiceXmlEmitterContext ToXmlContext(Emitter emitter, string environmentCode = "1")
+    public InvoiceXmlEmitterContext ToXmlContext(
+        Emitter emitter,
+        string environmentCode = "1",
+        string? establishmentAddress = null,
+        string? obligadoContabilidad = null,
+        string? contribuyenteEspecial = null)
     {
         var targetEnv = environmentCode == "2" ? Ecunexo.Billing.Core.Sri.SriEnvironment.Production : Ecunexo.Billing.Core.Sri.SriEnvironment.Test;
         var emission = emissionIdentity.Resolve(emitter, null, null, targetEnv);
+        var estabAddress = !string.IsNullOrWhiteSpace(establishmentAddress)
+            ? establishmentAddress.Trim()
+            : emission.MainAddress;
+        var obligado = !string.IsNullOrWhiteSpace(obligadoContabilidad)
+            ? (obligadoContabilidad.Trim().Equals("SI", StringComparison.OrdinalIgnoreCase) ? "SI" : "NO")
+            : "NO";
+
         return new InvoiceXmlEmitterContext(
             emission.BusinessName,
             emission.MainAddress,
             emission.TradeName,
             EnvironmentCode: environmentCode,
-            SoftwareProviderRuc: ResolveRuc(emitter.Ruc.Value));
+            SoftwareProviderRuc: ResolveRuc(emitter.Ruc.Value),
+            EstablishmentAddress: estabAddress,
+            ObligadoContabilidad: obligado,
+            ContribuyenteEspecial: string.IsNullOrWhiteSpace(contribuyenteEspecial) ? null : contribuyenteEspecial.Trim());
     }
 }

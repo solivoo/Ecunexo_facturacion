@@ -60,10 +60,24 @@ public sealed class SriFacturaXmlGenerator : IElectronicInvoiceXmlGenerator
                 new XElement("formaPago", invoice.PaymentFormCode),
                 new XElement("total", Money2(invoice.GrandTotal.Amount))));
 
+        var estabAddress = string.IsNullOrWhiteSpace(emitter.EstablishmentAddress)
+            ? emitter.MainAddress
+            : emitter.EstablishmentAddress;
+
+        var obligado = string.Equals(emitter.ObligadoContabilidad, "SI", StringComparison.OrdinalIgnoreCase)
+            ? "SI"
+            : "NO";
+
         var infoFactura = new XElement(
             "infoFactura",
             new XElement("fechaEmision", FormatDate(invoice.IssueDate)),
-            new XElement("obligadoContabilidad", "NO"),
+            string.IsNullOrWhiteSpace(estabAddress)
+                ? null
+                : new XElement("dirEstablecimiento", Sanitize(estabAddress)),
+            string.IsNullOrWhiteSpace(emitter.ContribuyenteEspecial)
+                ? null
+                : new XElement("contribuyenteEspecial", Sanitize(emitter.ContribuyenteEspecial)),
+            new XElement("obligadoContabilidad", obligado),
             new XElement("tipoIdentificacionComprador", invoice.Counterparty.IdentificationType),
             new XElement("razonSocialComprador", Sanitize(invoice.Counterparty.BusinessName)),
             new XElement("identificacionComprador", Sanitize(invoice.Counterparty.Identification)),
@@ -121,7 +135,7 @@ public sealed class SriFacturaXmlGenerator : IElectronicInvoiceXmlGenerator
             new XElement("codigoPrincipal", BuildProductCode(line)),
             new XElement("descripcion", Sanitize(line.Description)),
             new XElement("cantidad", Qty(line.Quantity)),
-            new XElement("precioUnitario", Qty(line.UnitPrice.Amount)),
+            new XElement("precioUnitario", UnitPrice(line.UnitPrice.Amount)),
             new XElement("descuento", Money2(line.Discount.Amount)),
             new XElement("precioTotalSinImpuesto", Money2(line.LineTotalWithoutTax.Amount)),
             impuestos);
@@ -179,6 +193,9 @@ public sealed class SriFacturaXmlGenerator : IElectronicInvoiceXmlGenerator
 
     private static string Money2(decimal value) =>
         value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    private static string UnitPrice(decimal value) =>
+        value.ToString("0.00####", CultureInfo.InvariantCulture);
 
     private static string Qty(decimal value) =>
         value.ToString("0.######", CultureInfo.InvariantCulture);

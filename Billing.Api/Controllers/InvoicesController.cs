@@ -260,7 +260,8 @@ public sealed class InvoicesController(
                 : SriEnv;
             var envCode = env == SriEnvironment.Production ? "2" : "1";
             var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
+            var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             xmlText = System.Text.Encoding.UTF8.GetString(xml);
         }
@@ -491,7 +492,8 @@ public sealed class InvoicesController(
             var envCode = env == SriEnvironment.Production ? "2" : "1";
 
             var accessKey = BuildAccessKey(invoice, env);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
+            var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
 
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             var validation = xmlValidator.Validate(xml, SchemaOf(invoice));
@@ -580,7 +582,8 @@ public sealed class InvoicesController(
             var envCode = env == SriEnvironment.Production ? "2" : "1";
 
             var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
-            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode);
+            var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
+            var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
 
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
             var validation = xmlValidator.Validate(xml, SchemaOf(invoice));

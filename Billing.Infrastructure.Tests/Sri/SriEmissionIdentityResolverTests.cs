@@ -81,6 +81,7 @@ public class SriEmissionIdentityResolverTests
             TestEmission = configured
                 ? new SriTestEmissionOptions
                 {
+                    Enabled = true,
                     Ruc = "0926398074001",
                     BusinessName = "Ecunexo S.A",
                     MainAddress = "Guayaquil via Daule",

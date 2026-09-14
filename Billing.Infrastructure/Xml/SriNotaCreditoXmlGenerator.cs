@@ -51,12 +51,23 @@ public sealed class SriNotaCreditoXmlGenerator : IElectronicCreditNoteXmlGenerat
                 new XElement("baseImponible", Money2(t.TaxableBase.Amount)),
                 new XElement("valor", Money2(t.Value.Amount)))));
 
+        var estabAddress = string.IsNullOrWhiteSpace(emitter.EstablishmentAddress)
+            ? emitter.MainAddress
+            : emitter.EstablishmentAddress;
+
         var infoNotaCredito = new XElement(
             "infoNotaCredito",
             new XElement("fechaEmision", FormatDate(creditNote.IssueDate)),
+            string.IsNullOrWhiteSpace(estabAddress)
+                ? null
+                : new XElement("dirEstablecimiento", Sanitize(estabAddress)),
             new XElement("tipoIdentificacionComprador", creditNote.Counterparty.IdentificationType),
             new XElement("razonSocialComprador", Sanitize(creditNote.Counterparty.BusinessName)),
             new XElement("identificacionComprador", Sanitize(creditNote.Counterparty.Identification)),
+            string.IsNullOrWhiteSpace(emitter.ContribuyenteEspecial)
+                ? null
+                : new XElement("contribuyenteEspecial", Sanitize(emitter.ContribuyenteEspecial)),
+            new XElement("obligadoContabilidad", string.Equals(emitter.ObligadoContabilidad, "SI", StringComparison.OrdinalIgnoreCase) ? "SI" : "NO"),
             new XElement("codDocModificado", creditNote.ModifiedDocumentType),
             new XElement("numDocModificado", creditNote.ModifiedDocumentNumber),
             new XElement("fechaEmisionDocSustento", FormatDate(creditNote.ModifiedIssueDate)),
@@ -109,7 +120,7 @@ public sealed class SriNotaCreditoXmlGenerator : IElectronicCreditNoteXmlGenerat
             new XElement("codigoInterno", BuildProductCode(line)),
             new XElement("descripcion", Sanitize(line.Description)),
             new XElement("cantidad", Qty(line.Quantity)),
-            new XElement("precioUnitario", Qty(line.UnitPrice.Amount)),
+            new XElement("precioUnitario", UnitPrice(line.UnitPrice.Amount)),
             new XElement("descuento", Money2(line.Discount.Amount)),
             new XElement("precioTotalSinImpuesto", Money2(line.LineTotalWithoutTax.Amount)),
             impuestos);
@@ -167,6 +178,9 @@ public sealed class SriNotaCreditoXmlGenerator : IElectronicCreditNoteXmlGenerat
 
     private static string Money2(decimal value) =>
         value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    private static string UnitPrice(decimal value) =>
+        value.ToString("0.00####", CultureInfo.InvariantCulture);
 
     private static string Qty(decimal value) =>
         value.ToString("0.######", CultureInfo.InvariantCulture);

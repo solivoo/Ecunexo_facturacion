@@ -400,14 +400,7 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
             .FirstAsync(x => x.Id == configId, cancellationToken)
             .ConfigureAwait(false);
 
-        var currentNext = config.LastSequential + 1;
-        if (requested < currentNext)
-        {
-            throw new InvalidOperationException(
-                $"No se puede rebobinar el secuencial. Próximo mínimo: {currentNext:D9} (último usado: {config.LastSequential:D9}).");
-        }
-
-        config.LastSequential = requested - 1;
+        config.LastSequential = Math.Max(0, requested - 1);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
 

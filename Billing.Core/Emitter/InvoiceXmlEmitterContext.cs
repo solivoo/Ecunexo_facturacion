@@ -7,4 +7,7 @@ public sealed record InvoiceXmlEmitterContext(
     string? TradeName = null,
     string EnvironmentCode = "1",
     string EmissionTypeCode = "1",
-    string? SoftwareProviderRuc = null);
+    string? SoftwareProviderRuc = null,
+    string? EstablishmentAddress = null,
+    string? ObligadoContabilidad = "NO",
+    string? ContribuyenteEspecial = null);

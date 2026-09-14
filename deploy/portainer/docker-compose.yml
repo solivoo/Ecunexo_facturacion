@@ -43,7 +43,8 @@ services:
       Billing__DatabaseBootstrap__SeedCatalogs: ${BILLING_BOOTSTRAP_SEED:-true}
       Sri__UseInMemoryGateway: ${SRI_USE_INMEMORY:-true}
       Sri__DefaultEnvironment: ${SRI_ENVIRONMENT:-Test}
-      # Identidad plataforma en celcer (sustituye RUC del tenant distinto en Test).
+      # Identidad plataforma en celcer (desactivada por defecto para preservar identidad real del tenant).
+      Sri__TestEmission__Enabled: ${SRI_TEST_EMISSION_ENABLED:-false}
       Sri__TestEmission__Ruc: ${SRI_TEST_EMISSION_RUC:-0926398074001}
       Sri__TestEmission__BusinessName: ${SRI_TEST_EMISSION_BUSINESS_NAME:-Ecunexo S.A}
       Sri__TestEmission__MainAddress: ${SRI_TEST_EMISSION_MAIN_ADDRESS:-Guayaquil via Daule}

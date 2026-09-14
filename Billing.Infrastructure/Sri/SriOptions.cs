@@ -72,6 +72,9 @@ public sealed class SriEndpointOptions
 /// <summary>RUC y ficha del contribuyente habilitado en ambiente de pruebas SRI.</summary>
 public sealed class SriTestEmissionOptions
 {
+    /// <summary>Habilita la sustitución de identidad de prueba en celcer. En producción y para tenants reales debe permanecer en false.</summary>
+    public bool Enabled { get; set; } = false;
+
     public string Ruc { get; set; } = string.Empty;
     public string BusinessName { get; set; } = string.Empty;
     public string MainAddress { get; set; } = string.Empty;
@@ -81,6 +84,9 @@ public sealed class SriTestEmissionOptions
 
     public bool IsConfigured()
     {
+        if (!Enabled)
+            return false;
+
         var ruc = new string(Ruc.Where(char.IsDigit).ToArray());
         return ruc.Length == 13
             && !string.IsNullOrWhiteSpace(BusinessName)

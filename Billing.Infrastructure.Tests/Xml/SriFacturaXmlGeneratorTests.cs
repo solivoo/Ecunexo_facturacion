@@ -57,6 +57,9 @@ public class SriFacturaXmlGeneratorTests
         Assert.Contains("<factura id=\"comprobante\" version=\"1.1.0\"", xmlText);
         Assert.Contains("<tipoEmision>1</tipoEmision>", xmlText);
         Assert.Contains("<codDoc>01</codDoc>", xmlText);
+        Assert.Contains("<dirEstablecimiento>Av. Principal 123</dirEstablecimiento>", xmlText);
+        Assert.Contains("<obligadoContabilidad>NO</obligadoContabilidad>", xmlText);
+        Assert.Contains("<precioUnitario>50.00</precioUnitario>", xmlText);
         Assert.Contains("<importeTotal>115.00</importeTotal>", xmlText);
 
         var validator = new XsdElectronicDocumentXmlValidator(NullLogger<XsdElectronicDocumentXmlValidator>.Instance);
