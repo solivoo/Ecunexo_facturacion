@@ -80,6 +80,7 @@ public sealed class EmittersController(IEmitterRepository emitterRepository) : C
         Guid emitterId,
         [FromQuery] string? establishment,
         [FromQuery] string? emissionPoint,
+        [FromQuery] string? environment,
         CancellationToken cancellationToken)
     {
         var emitter = await emitterRepository.GetAsync(emitterId, cancellationToken).ConfigureAwait(false);
@@ -106,6 +107,7 @@ public sealed class EmittersController(IEmitterRepository emitterRepository) : C
                     estab,
                     pto,
                     DocumentTypeCode.Factura.Value,
+                    environment,
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -153,6 +155,7 @@ public sealed class EmittersController(IEmitterRepository emitterRepository) : C
                     pto,
                     DocumentTypeCode.Factura.Value,
                     request.NextSequential,
+                    request.Environment,
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -263,9 +266,10 @@ public sealed record SequentialNextResponse(string NextSequential, string Establ
 
 public sealed record SetSequentialNextRequest(
     string NextSequential,
-    string? Establishment,
-    string? EmissionPoint,
-    string? Address);
+    string? Establishment = null,
+    string? EmissionPoint = null,
+    string? Address = null,
+    string? Environment = null);
 
 public sealed record AddEstablishmentRequest(
     string Code,

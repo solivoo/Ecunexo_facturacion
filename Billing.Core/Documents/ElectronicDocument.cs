@@ -13,6 +13,7 @@ public abstract class ElectronicDocument
     public DateOnly IssueDate { get; protected set; }
     public ClaveAcceso? AccessKey { get; protected set; }
     public SriDocumentState State { get; protected set; }
+    public Sri.SriEnvironment Environment { get; protected set; } = Sri.SriEnvironment.Production;
 
     public abstract DocumentTypeCode DocumentType { get; }
 

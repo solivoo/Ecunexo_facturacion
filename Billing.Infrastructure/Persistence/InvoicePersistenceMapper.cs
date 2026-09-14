@@ -32,6 +32,7 @@ internal static class InvoicePersistenceMapper
             EmissionPoint = document.EmissionPoint.Value,
             Sequential = document.Sequential.Value,
             DocumentType = document.DocumentType.Value,
+            Environment = document.Environment == Ecunexo.Billing.Core.Sri.SriEnvironment.Test ? "Test" : "Production",
             IssueDate = document.IssueDate,
             AccessKey = document.AccessKey?.Value,
             State = document.State.ToString(),
@@ -132,6 +133,14 @@ internal static class InvoicePersistenceMapper
             new Money(t.TaxableBase),
             new Money(t.Value))).ToList();
 
+        var env = Enum.TryParse<Ecunexo.Billing.Core.Sri.SriEnvironment>(entity.Environment, ignoreCase: true, out var parsedEnv)
+            ? parsedEnv
+            : (entity.AccessKey is { Length: >= 24 } ak && ak[23] == '2'
+                ? Ecunexo.Billing.Core.Sri.SriEnvironment.Production
+                : (entity.AccessKey is { Length: >= 24 } ak2 && ak2[23] == '1'
+                    ? Ecunexo.Billing.Core.Sri.SriEnvironment.Test
+                    : Ecunexo.Billing.Core.Sri.SriEnvironment.Production));
+
         if (entity.DocumentType == DocumentTypeCode.NotaCredito.Value)
         {
             if (entity.ModifiedInvoiceId is null
@@ -163,7 +172,8 @@ internal static class InvoicePersistenceMapper
                 entity.ModifiedIssueDate.Value,
                 entity.Motivo,
                 entity.PaymentFormCode,
-                entity.AdditionalNote);
+                entity.AdditionalNote,
+                env);
         }
 
         return ElectronicInvoice.Rehydrate(
@@ -182,7 +192,8 @@ internal static class InvoicePersistenceMapper
             key,
             entity.PaymentFormCode,
             entity.AdditionalNote,
-            entity.PaymentTermDays);
+            entity.PaymentTermDays,
+            env);
     }
 
     private sealed record CounterpartyDto(

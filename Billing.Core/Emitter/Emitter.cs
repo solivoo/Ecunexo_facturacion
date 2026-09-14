@@ -93,7 +93,8 @@ public class Emitter
     public SequentialNumber GetNextSequential(
         EstablishmentCode establishmentCode,
         EmissionPoint emissionPoint,
-        DocumentTypeCode documentType)
+        DocumentTypeCode documentType,
+        Sri.SriEnvironment environment = Sri.SriEnvironment.Production)
     {
         ArgumentNullException.ThrowIfNull(establishmentCode);
         ArgumentNullException.ThrowIfNull(emissionPoint);
@@ -104,6 +105,6 @@ public class Emitter
             throw new InvalidOperationException("El establecimiento no existe para el emisor.");
 
         var config = establishment.GetConfig(emissionPoint, documentType);
-        return config.NextSequential();
+        return config.NextSequential(environment);
     }
 }

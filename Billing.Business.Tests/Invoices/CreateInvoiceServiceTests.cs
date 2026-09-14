@@ -125,6 +125,40 @@ public sealed class CreateInvoiceServiceTests
             p => p.Establishment == "002" && p.EmissionPoint == "001" && p.DocumentType == "01");
     }
 
+    [Fact(DisplayName = "CreateInvoice: ambiente Test asigna entorno y secuencial de prueba")]
+    public async Task ExecuteAsync_WithTestEnvironment_AssignsTestEnvironment()
+    {
+        var emitter = CreateEmitter();
+        var service = CreateService(out var invoiceRepository, out var emitterRepository, out _);
+        emitterRepository.Add(emitter);
+
+        var command = ValidCommand(emitter.Id) with { Environment = "Test" };
+        var result = await service.ExecuteAsync(command);
+
+        var success = Assert.IsType<CreateInvoiceSuccess>(result);
+        Assert.Equal(SriEnvironment.Test, success.Invoice.Environment);
+        Assert.Equal("Test", emitterRepository.LastAllocatedEnvironment);
+        Assert.Single(invoiceRepository.Saved);
+        Assert.Equal(SriEnvironment.Test, invoiceRepository.Saved[0].Document.Environment);
+    }
+
+    [Fact(DisplayName = "CreateInvoice: ambiente Production asigna entorno y secuencial de producción")]
+    public async Task ExecuteAsync_WithProductionEnvironment_AssignsProductionEnvironment()
+    {
+        var emitter = CreateEmitter();
+        var service = CreateService(out var invoiceRepository, out var emitterRepository, out _);
+        emitterRepository.Add(emitter);
+
+        var command = ValidCommand(emitter.Id) with { Environment = "Production" };
+        var result = await service.ExecuteAsync(command);
+
+        var success = Assert.IsType<CreateInvoiceSuccess>(result);
+        Assert.Equal(SriEnvironment.Production, success.Invoice.Environment);
+        Assert.Equal("Production", emitterRepository.LastAllocatedEnvironment);
+        Assert.Single(invoiceRepository.Saved);
+        Assert.Equal(SriEnvironment.Production, invoiceRepository.Saved[0].Document.Environment);
+    }
+
     private static CreateInvoiceService CreateService(
         out FakeInvoiceRepository invoiceRepository,
         out FakeEmitterRepository emitterRepository,

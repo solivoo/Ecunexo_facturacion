@@ -30,14 +30,18 @@ internal sealed class FakeEmitterRepository : IEmitterRepository
         return Task.FromResult(ResolvedPoint);
     }
 
+    public string? LastAllocatedEnvironment { get; private set; }
+
     public Task<SequentialNumber> AllocateNextSequentialAsync(
         Guid emitterId,
         string establishmentCode,
         string emissionPoint,
         string documentType,
         string? requestedSequential = null,
+        string? environment = null,
         CancellationToken cancellationToken = default)
     {
+        LastAllocatedEnvironment = environment;
         var value = requestedSequential ?? _nextSequential++.ToString().PadLeft(9, '0');
         return Task.FromResult(SequentialNumber.Create(value));
     }
@@ -84,6 +88,7 @@ internal sealed class FakeEmitterRepository : IEmitterRepository
         string establishmentCode,
         string emissionPoint,
         string documentType,
+        string? environment = null,
         CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
 
@@ -93,6 +98,7 @@ internal sealed class FakeEmitterRepository : IEmitterRepository
         string emissionPoint,
         string documentType,
         string nextSequential,
+        string? environment = null,
         CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
 

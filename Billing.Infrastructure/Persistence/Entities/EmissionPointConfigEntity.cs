@@ -7,6 +7,7 @@ public sealed class EmissionPointConfigEntity
     public string EmissionPoint { get; set; } = string.Empty;
     public string DocumentType { get; set; } = string.Empty;
     public long LastSequential { get; set; }
+    public long LastTestSequential { get; set; }
 
     public EstablishmentEntity Establishment { get; set; } = null!;
 }

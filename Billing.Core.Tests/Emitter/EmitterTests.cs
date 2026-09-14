@@ -18,6 +18,47 @@ public class EmitterTests
         Assert.Equal("000000042", sequential.Value);
     }
 
+    [Fact(DisplayName = "GetNextSequential aísla secuenciales entre Test y Production")]
+    public void GetNextSequential_IsolatesTestAndProductionCounters()
+    {
+        var emitter = DomainEmitter.Create(
+            Ruc.Create("1792146739001"),
+            "Mi Empresa",
+            "Dir Matriz");
+
+        var establishment = Establishment.Create(
+            EstablishmentCode.Create("001"),
+            "Sucursal 001");
+
+        establishment.AddEmissionPointConfig(
+            EmissionPointConfig.Create(
+                EmissionPoint.Create("001"),
+                DocumentTypeCode.Factura,
+                lastSequential: 533,
+                lastTestSequential: 20));
+
+        emitter.AddEstablishment(establishment);
+
+        var estab = EstablishmentCode.Create("001");
+        var pto = EmissionPoint.Create("001");
+
+        // Emisión en Pruebas: debe usar lastTestSequential y avanzar a 21
+        var testSeq1 = emitter.GetNextSequential(estab, pto, DocumentTypeCode.Factura, Sri.SriEnvironment.Test);
+        Assert.Equal("000000021", testSeq1.Value);
+
+        // Emisión en Producción: debe usar lastSequential (533) y avanzar a 534 sin haber sido afectado por pruebas
+        var prodSeq1 = emitter.GetNextSequential(estab, pto, DocumentTypeCode.Factura, Sri.SriEnvironment.Production);
+        Assert.Equal("000000534", prodSeq1.Value);
+
+        // Nueva emisión en Pruebas: avanza a 22 sin afectar producción
+        var testSeq2 = emitter.GetNextSequential(estab, pto, DocumentTypeCode.Factura, Sri.SriEnvironment.Test);
+        Assert.Equal("000000022", testSeq2.Value);
+
+        // Nueva emisión en Producción: avanza a 535
+        var prodSeq2 = emitter.GetNextSequential(estab, pto, DocumentTypeCode.Factura, Sri.SriEnvironment.Production);
+        Assert.Equal("000000535", prodSeq2.Value);
+    }
+
     [Fact(DisplayName = "GetNextSequential sin configuración falla")]
     public void GetNextSequential_WithoutConfig_Throws()
     {

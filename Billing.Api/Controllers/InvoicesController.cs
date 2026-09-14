@@ -255,11 +255,11 @@ public sealed class InvoicesController(
         }
         else
         {
-            var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
-                ? SriEnvironment.Production
-                : SriEnv;
+            var env = invoice.Environment;
             var envCode = env == SriEnvironment.Production ? "2" : "1";
-            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
+            var accessKey = (invoice.AccessKey is not null && invoice.AccessKey.Value.Length >= 24 && invoice.AccessKey.Value[23] == envCode[0])
+                ? invoice.AccessKey
+                : BuildAccessKey(invoice, env);
             var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
             var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
             var xml = BuildDocumentXml(invoice, emitterCtx, accessKey);
@@ -419,6 +419,7 @@ public sealed class InvoicesController(
                     invoice.EmissionPoint.Value,
                     DocumentTypeCode.NotaCredito.Value,
                     requestedSequential: null,
+                    environment: invoice.Environment.ToString(),
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -486,9 +487,7 @@ public sealed class InvoicesController(
         {
             var env = !string.IsNullOrWhiteSpace(environment)
                 ? ResolveSriEnvironment(environment)
-                : (invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
-                    ? SriEnvironment.Production
-                    : ResolveSriEnvironment(environment));
+                : invoice.Environment;
             var envCode = env == SriEnvironment.Production ? "2" : "1";
 
             var accessKey = BuildAccessKey(invoice, env);
@@ -576,12 +575,14 @@ public sealed class InvoicesController(
 
         try
         {
-            var env = invoice.AccessKey?.Value is { Length: >= 24 } ak && ak[23] == '2'
-                ? SriEnvironment.Production
-                : ResolveSriEnvironment(environment);
+            var env = !string.IsNullOrWhiteSpace(environment)
+                ? ResolveSriEnvironment(environment)
+                : invoice.Environment;
             var envCode = env == SriEnvironment.Production ? "2" : "1";
 
-            var accessKey = invoice.AccessKey ?? BuildAccessKey(invoice, env);
+            var accessKey = (invoice.AccessKey is not null && invoice.AccessKey.Value.Length >= 24 && invoice.AccessKey.Value[23] == envCode[0])
+                ? invoice.AccessKey
+                : BuildAccessKey(invoice, env);
             var estabAddress = emitter.Establishments.FirstOrDefault(e => e.Code.Value == invoice.Establishment.Value)?.Address;
             var emitterCtx = rideProviderResolver.ToXmlContext(emitter, envCode, estabAddress);
 

@@ -79,6 +79,7 @@ public sealed class CreateInvoiceService(
                     pto.Value,
                     DocumentTypeCode.Factura.Value,
                     requestedSequential: command.RequestedSequential,
+                    environment: command.Environment,
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -115,7 +116,8 @@ public sealed class CreateInvoiceService(
                 taxRateRepository,
                 command.PaymentFormCode,
                 command.AdditionalNote,
-                command.PaymentTermDays);
+                command.PaymentTermDays,
+                environment: targetEnv ?? Ecunexo.Billing.Core.Sri.SriEnvironment.Production);
 
             await invoiceRepository
                 .SaveNewAsync(

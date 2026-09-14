@@ -163,7 +163,7 @@ public interface IEmitterRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Candado: SELECT FOR UPDATE + incrementa last_sequential.
+    /// Candado: SELECT FOR UPDATE + incrementa last_sequential según el ambiente (Test vs Production).
     /// Si <paramref name="requestedSequential"/> es mayor al próximo automático, salta el contador hasta ese valor.
     /// </summary>
     Task<SequentialNumber> AllocateNextSequentialAsync(
@@ -172,6 +172,7 @@ public interface IEmitterRepository
         string emissionPoint,
         string documentType,
         string? requestedSequential = null,
+        string? environment = null,
         CancellationToken cancellationToken = default);
 
     Task<string> PeekNextSequentialAsync(
@@ -179,11 +180,11 @@ public interface IEmitterRepository
         string establishmentCode,
         string emissionPoint,
         string documentType,
+        string? environment = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Configura el próximo secuencial a emitir (LastSequential = next - 1).
-    /// No permite rebobinar por debajo del último ya asignado.
+    /// Configura el próximo secuencial a emitir en el ambiente indicado (LastSequential/LastTestSequential = next - 1).
     /// </summary>
     Task<string> SetNextSequentialAsync(
         Guid emitterId,
@@ -191,6 +192,7 @@ public interface IEmitterRepository
         string emissionPoint,
         string documentType,
         string nextSequential,
+        string? environment = null,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<(string Code, string Address)>> ListEstablishmentsAsync(

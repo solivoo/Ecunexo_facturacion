@@ -25,7 +25,8 @@ public class ElectronicInvoice : SalesDocument
         ITaxRateRepository taxRateRepository,
         string? paymentFormCode = null,
         string? additionalNote = null,
-        int paymentTermDays = 0)
+        int paymentTermDays = 0,
+        Sri.SriEnvironment environment = Sri.SriEnvironment.Production)
     {
         ArgumentNullException.ThrowIfNull(taxRateRepository);
         if (lines.Count == 0)
@@ -50,6 +51,7 @@ public class ElectronicInvoice : SalesDocument
             PaymentFormCode = payment.Code,
             AdditionalNote = NormalizeNote(additionalNote),
             PaymentTermDays = NormalizeTermDays(paymentTermDays),
+            Environment = environment,
             State = SriDocumentState.Draft
         };
 
@@ -74,7 +76,8 @@ public class ElectronicInvoice : SalesDocument
         ClaveAcceso? accessKey,
         string? paymentFormCode = null,
         string? additionalNote = null,
-        int paymentTermDays = 0)
+        int paymentTermDays = 0,
+        Sri.SriEnvironment environment = Sri.SriEnvironment.Production)
     {
         return new ElectronicInvoice
         {
@@ -92,6 +95,7 @@ public class ElectronicInvoice : SalesDocument
             PaymentFormCode = PaymentForm.FromCode(paymentFormCode).Code,
             AdditionalNote = NormalizeNote(additionalNote),
             PaymentTermDays = NormalizeTermDays(paymentTermDays),
+            Environment = environment,
             State = state,
             AccessKey = accessKey,
         };

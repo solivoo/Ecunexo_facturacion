@@ -61,6 +61,7 @@ public sealed class ElectronicCreditNote : SalesDocument
             GrandTotal = grandTotal,
             PaymentFormCode = invoice.PaymentFormCode,
             AdditionalNote = invoice.AdditionalNote,
+            Environment = invoice.Environment,
             State = SriDocumentState.Draft,
             ModifiedInvoiceId = invoice.Id,
             ModifiedDocumentType = DocumentTypeCode.Factura.Value,
@@ -94,7 +95,8 @@ public sealed class ElectronicCreditNote : SalesDocument
         DateOnly modifiedIssueDate,
         string motivo,
         string? paymentFormCode = null,
-        string? additionalNote = null)
+        string? additionalNote = null,
+        Sri.SriEnvironment environment = Sri.SriEnvironment.Production)
     {
         return new ElectronicCreditNote
         {
@@ -111,6 +113,7 @@ public sealed class ElectronicCreditNote : SalesDocument
             GrandTotal = grandTotal,
             PaymentFormCode = PaymentForm.FromCode(paymentFormCode).Code,
             AdditionalNote = additionalNote,
+            Environment = environment,
             State = state,
             AccessKey = accessKey,
             ModifiedInvoiceId = modifiedInvoiceId,

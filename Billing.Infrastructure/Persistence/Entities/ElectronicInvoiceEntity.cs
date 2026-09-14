@@ -10,6 +10,7 @@ public sealed class ElectronicInvoiceEntity
     public string EmissionPoint { get; set; } = string.Empty;
     public string Sequential { get; set; } = string.Empty;
     public string DocumentType { get; set; } = "01";
+    public string Environment { get; set; } = "Production";
     public DateOnly IssueDate { get; set; }
     public string? AccessKey { get; set; }
     public string State { get; set; } = "Draft";

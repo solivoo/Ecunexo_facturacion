@@ -47,6 +47,7 @@ internal sealed class EmissionPointConfigEntityConfiguration : IEntityTypeConfig
         builder.HasKey(x => x.Id);
         builder.Property(x => x.EmissionPoint).HasMaxLength(3).IsRequired();
         builder.Property(x => x.DocumentType).HasMaxLength(2).IsRequired();
+        builder.Property(x => x.LastTestSequential).HasDefaultValue(0L);
         builder.HasIndex(x => new { x.EstablishmentId, x.EmissionPoint, x.DocumentType }).IsUnique();
     }
 }
@@ -62,6 +63,7 @@ internal sealed class ElectronicInvoiceEntityConfiguration : IEntityTypeConfigur
         builder.Property(x => x.EmissionPoint).HasMaxLength(3).IsRequired();
         builder.Property(x => x.Sequential).HasMaxLength(9).IsRequired();
         builder.Property(x => x.DocumentType).HasMaxLength(2).IsRequired();
+        builder.Property(x => x.Environment).HasMaxLength(16).IsRequired().HasDefaultValue("Production");
         builder.Property(x => x.AccessKey).HasMaxLength(49);
         builder.Property(x => x.State).HasMaxLength(32).IsRequired();
         builder.Property(x => x.CounterpartyJson).HasColumnType("jsonb").IsRequired();
@@ -79,6 +81,7 @@ internal sealed class ElectronicInvoiceEntityConfiguration : IEntityTypeConfigur
         builder.HasIndex(x => new
         {
             x.EmitterId,
+            x.Environment,
             x.Establishment,
             x.EmissionPoint,
             x.DocumentType,

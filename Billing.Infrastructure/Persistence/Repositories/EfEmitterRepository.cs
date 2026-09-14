@@ -271,11 +271,14 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
         string emissionPoint,
         string documentType,
         string? requestedSequential = null,
+        string? environment = null,
         CancellationToken cancellationToken = default)
     {
         var estabCode = NormalizeCode3(establishmentCode);
         var pto = NormalizeCode3(emissionPoint);
         long? requested = ParseSequentialOptional(requestedSequential);
+        var isTest = string.Equals(environment, "Test", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(environment, "1", StringComparison.OrdinalIgnoreCase);
 
         await using var tx = await db.Database
             .BeginTransactionAsync(cancellationToken)
@@ -306,28 +309,56 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
             .FirstAsync(x => x.Id == configId, cancellationToken)
             .ConfigureAwait(false);
 
-        if (config.LastSequential >= 999_999_999)
-            throw new InvalidOperationException("No hay más secuenciales disponibles.");
-
-        var nextAuto = config.LastSequential + 1;
-        if (requested is not null)
+        if (isTest)
         {
-            if (requested.Value <= config.LastSequential)
+            if (config.LastTestSequential >= 999_999_999)
+                throw new InvalidOperationException("No hay más secuenciales de prueba disponibles.");
+
+            var nextAuto = config.LastTestSequential + 1;
+            if (requested is not null)
             {
-                throw new InvalidOperationException(
-                    $"El secuencial {requested.Value:D9} ya fue usado o es menor/igual al último ({config.LastSequential:D9}). Próximo disponible: {nextAuto:D9}.");
+                if (requested.Value <= config.LastTestSequential)
+                {
+                    throw new InvalidOperationException(
+                        $"El secuencial de prueba {requested.Value:D9} ya fue usado o es menor/igual al último ({config.LastTestSequential:D9}). Próximo disponible: {nextAuto:D9}.");
+                }
+
+                // Saltar adelante hasta el solicitado (p. ej. retomar tras emisiones previas en el SRI).
+                if (requested.Value > nextAuto)
+                    config.LastTestSequential = requested.Value - 1;
             }
 
-            // Saltar adelante hasta el solicitado (p. ej. retomar tras emisiones previas en el SRI).
-            if (requested.Value > nextAuto)
-                config.LastSequential = requested.Value - 1;
+            config.LastTestSequential++;
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+            return SequentialNumber.Create(config.LastTestSequential.ToString("D9"));
         }
+        else
+        {
+            if (config.LastSequential >= 999_999_999)
+                throw new InvalidOperationException("No hay más secuenciales disponibles.");
 
-        config.LastSequential++;
-        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            var nextAuto = config.LastSequential + 1;
+            if (requested is not null)
+            {
+                if (requested.Value <= config.LastSequential)
+                {
+                    throw new InvalidOperationException(
+                        $"El secuencial {requested.Value:D9} ya fue usado o es menor/igual al último ({config.LastSequential:D9}). Próximo disponible: {nextAuto:D9}.");
+                }
 
-        return SequentialNumber.Create(config.LastSequential.ToString("D9"));
+                // Saltar adelante hasta el solicitado (p. ej. retomar tras emisiones previas en el SRI).
+                if (requested.Value > nextAuto)
+                    config.LastSequential = requested.Value - 1;
+            }
+
+            config.LastSequential++;
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+            return SequentialNumber.Create(config.LastSequential.ToString("D9"));
+        }
     }
 
     public async Task<string> PeekNextSequentialAsync(
@@ -335,10 +366,13 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
         string establishmentCode,
         string emissionPoint,
         string documentType,
+        string? environment = null,
         CancellationToken cancellationToken = default)
     {
         var estabCode = NormalizeCode3(establishmentCode);
         var pto = NormalizeCode3(emissionPoint);
+        var isTest = string.Equals(environment, "Test", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(environment, "1", StringComparison.OrdinalIgnoreCase);
 
         var last = await (
                 from c in db.EmissionPointConfigs.AsNoTracking()
@@ -347,7 +381,7 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
                       && e.Code == estabCode
                       && c.EmissionPoint == pto
                       && c.DocumentType == documentType
-                select (long?)c.LastSequential)
+                select (long?)(isTest ? c.LastTestSequential : c.LastSequential))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -364,10 +398,13 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
         string emissionPoint,
         string documentType,
         string nextSequential,
+        string? environment = null,
         CancellationToken cancellationToken = default)
     {
         var estabCode = NormalizeCode3(establishmentCode);
         var pto = NormalizeCode3(emissionPoint);
+        var isTest = string.Equals(environment, "Test", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(environment, "1", StringComparison.OrdinalIgnoreCase);
         var requested = ParseSequentialOptional(nextSequential)
             ?? throw new ArgumentException("Indique el próximo secuencial (1..999999999).");
 
@@ -400,7 +437,15 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
             .FirstAsync(x => x.Id == configId, cancellationToken)
             .ConfigureAwait(false);
 
-        config.LastSequential = Math.Max(0, requested - 1);
+        if (isTest)
+        {
+            config.LastTestSequential = Math.Max(0, requested - 1);
+        }
+        else
+        {
+            config.LastSequential = Math.Max(0, requested - 1);
+        }
+
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -506,7 +551,8 @@ public sealed class EfEmitterRepository(BillingDbContext db) : IEmitterRepositor
                     p.Id,
                     EmissionPoint.Create(p.EmissionPoint),
                     DocumentTypeCode.Create(p.DocumentType),
-                    p.LastSequential))))
+                    p.LastSequential,
+                    p.LastTestSequential))))
             .ToList();
 
         return Emitter.Rehydrate(
