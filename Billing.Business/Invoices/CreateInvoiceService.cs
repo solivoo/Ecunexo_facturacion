@@ -72,7 +72,7 @@ public sealed class CreateInvoiceService(
                     estab.Value,
                     pto.Value,
                     DocumentTypeCode.Factura.Value,
-                    requestedSequential: null,
+                    requestedSequential: command.RequestedSequential,
                     cancellationToken)
                 .ConfigureAwait(false);
 

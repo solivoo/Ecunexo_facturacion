@@ -274,6 +274,11 @@ public sealed class InvoicesController(
         [FromBody] CreateInvoiceRequest request,
         CancellationToken cancellationToken)
     {
+        var requestedSeq = string.IsNullOrWhiteSpace(request.Sequential)
+            || request.Sequential.Equals("auto", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : request.Sequential.Trim();
+
         var result = await createInvoiceService
             .ExecuteAsync(
                 new CreateInvoiceCommand(
@@ -312,7 +317,8 @@ public sealed class InvoicesController(
                     .ToList(),
                     request.PaymentFormCode,
                     request.AdditionalNote,
-                    request.PaymentTermDays),
+                    request.PaymentTermDays,
+                    requestedSeq),
                 cancellationToken)
             .ConfigureAwait(false);
 

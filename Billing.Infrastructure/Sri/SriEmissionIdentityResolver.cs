@@ -24,6 +24,7 @@ public sealed class SriEmissionIdentityResolver(IOptions<SriOptions> options) : 
 
         if (environment is SriEnvironment.Test
             && test.IsConfigured()
+            && emitter.Certificate is null
             && !string.Equals(emitter.Ruc.Value, Digits(test.Ruc), StringComparison.Ordinal))
         {
             return new SriEmissionIdentity(

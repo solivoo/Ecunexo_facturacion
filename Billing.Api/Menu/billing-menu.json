@@ -69,6 +69,7 @@
           "label": "Catálogos tributarios",
           "permissions": ["facturacion:catalogos:read"],
           "children": [
+            {
               "id": "facturacion-catalogos-reglas",
               "label": "Reglas SRI",
               "path": "/facturacion/catalogos/reglas",

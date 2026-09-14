@@ -11,7 +11,8 @@ public sealed record CreateInvoiceCommand(
     IReadOnlyList<CreateInvoiceLine> Lines,
     string? PaymentFormCode,
     string? AdditionalNote,
-    int PaymentTermDays);
+    int PaymentTermDays,
+    string? RequestedSequential = null);
 
 public sealed record CreateInvoiceCounterparty(
     string IdentificationType,
