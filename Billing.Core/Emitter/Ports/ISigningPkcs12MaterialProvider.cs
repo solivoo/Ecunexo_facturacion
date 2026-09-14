@@ -9,4 +9,7 @@ public sealed record SigningPkcs12Material(byte[] PfxBytes, string Password)
 public interface ISigningPkcs12MaterialProvider
 {
     Task<SigningPkcs12Material> GetPkcs12Async(CancellationToken cancellationToken = default);
+
+    Task<SigningPkcs12Material> GetPkcs12ForEmitterAsync(Guid emitterId, CancellationToken cancellationToken = default) =>
+        GetPkcs12Async(cancellationToken);
 }

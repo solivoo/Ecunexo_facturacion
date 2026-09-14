@@ -39,7 +39,7 @@ public sealed class XadesElectronicSignatureService : IElectronicSignatureServic
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var material = await _pkcs12.GetPkcs12Async(cancellationToken).ConfigureAwait(false);
+        var material = await _pkcs12.GetPkcs12ForEmitterAsync(emitterId, cancellationToken).ConfigureAwait(false);
         var xmlText = Encoding.UTF8.GetString(xml);
 
         _logger.LogInformation("Firmando XML XAdES-BES para emisor {EmitterId} ({Bytes} bytes)", emitterId, xml.Length);

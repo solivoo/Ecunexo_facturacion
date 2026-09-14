@@ -14,9 +14,12 @@ using Ecunexo.Billing.Infrastructure.Sri.Workers;
 using Ecunexo.Billing.Infrastructure.TaxCatalog;
 using Ecunexo.Billing.Infrastructure.TaxCatalog.Repositories;
 using Ecunexo.Billing.Infrastructure.TaxRules;
+using Ecunexo.Billing.Infrastructure.Signing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Ecunexo.Billing.Infrastructure;
 
@@ -111,21 +114,34 @@ public static class DependencyInjection
         services.Configure<InfisicalOptions>(configuration.GetSection(InfisicalOptions.SectionName));
         services.AddMemoryCache();
 
-        services.AddHttpClient<InfisicalClient>((_, client) =>
-        {
-            var baseUrl = configuration[$"{InfisicalOptions.SectionName}:BaseUrl"];
-            if (string.IsNullOrWhiteSpace(baseUrl))
-                throw new InvalidOperationException("Infisical:BaseUrl no está configurado.");
+        var baseUrl = configuration[$"{InfisicalOptions.SectionName}:BaseUrl"];
+        var hasInfisical = !string.IsNullOrWhiteSpace(baseUrl);
 
-            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
-            client.Timeout = TimeSpan.FromSeconds(30);
+        if (hasInfisical)
+        {
+            services.AddHttpClient<InfisicalClient>((_, client) =>
+            {
+                client.BaseAddress = new Uri(baseUrl!.TrimEnd('/') + "/");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+            services.AddSingleton<InfisicalSigningCertificateProvider>();
+        }
+
+        services.AddScoped<DbTenantSigningCertificateProvider>(sp =>
+        {
+            var db = sp.GetRequiredService<BillingDbContext>();
+            var config = sp.GetRequiredService<IConfiguration>();
+            var cache = sp.GetRequiredService<IMemoryCache>();
+            var logger = sp.GetRequiredService<ILogger<DbTenantSigningCertificateProvider>>();
+            var infisical = hasInfisical ? sp.GetService<InfisicalSigningCertificateProvider>() : null;
+            return new DbTenantSigningCertificateProvider(db, config, cache, logger, infisical);
         });
 
-        services.AddSingleton<InfisicalSigningCertificateProvider>();
-        services.AddSingleton<ISigningCertificateProvider>(sp =>
-            sp.GetRequiredService<InfisicalSigningCertificateProvider>());
-        services.AddSingleton<ISigningPkcs12MaterialProvider>(sp =>
-            sp.GetRequiredService<InfisicalSigningCertificateProvider>());
+        services.AddScoped<ISigningPkcs12MaterialProvider>(sp =>
+            sp.GetRequiredService<DbTenantSigningCertificateProvider>());
+        services.AddScoped<ISigningCertificateProvider>(sp =>
+            sp.GetRequiredService<DbTenantSigningCertificateProvider>());
 
         return services;
     }
