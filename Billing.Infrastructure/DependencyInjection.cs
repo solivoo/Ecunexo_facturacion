@@ -55,6 +55,7 @@ public static class DependencyInjection
             services.AddTenantSigningSecrets(configuration);
             services.AddSriGateway(configuration);
             services.AddInventoryEgressNotifier(configuration);
+            services.AddInvoiceEmailNotifier(configuration);
             services.AddHostedService<SriOutboxWorker>();
         }
 
@@ -79,6 +80,27 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 120));
         });
         services.AddScoped<Inventory.IInventoryEgressNotifier, Inventory.HttpInventoryEgressNotifier>();
+        return services;
+    }
+
+    public static IServiceCollection AddInvoiceEmailNotifier(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<Email.InvoiceEmailOptions>(
+            configuration.GetSection(Email.InvoiceEmailOptions.SectionName));
+        var timeoutSeconds = configuration.GetValue(
+            $"{Email.InvoiceEmailOptions.SectionName}:TimeoutSeconds",
+            30);
+        var baseUrl = configuration[$"{Email.InvoiceEmailOptions.SectionName}:BaseUrl"];
+
+        services.AddHttpClient(Email.HttpInvoiceEmailNotifier.HttpClientName, client =>
+        {
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 120));
+        });
+        services.AddScoped<Email.IInvoiceEmailNotifier, Email.HttpInvoiceEmailNotifier>();
         return services;
     }
 

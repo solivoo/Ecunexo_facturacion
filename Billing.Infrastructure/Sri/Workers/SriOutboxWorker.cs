@@ -5,6 +5,7 @@ using Ecunexo.Billing.Core.Documents.Ports;
 using Ecunexo.Billing.Core.Sri;
 using Ecunexo.Billing.Core.Sri.Policies;
 using Ecunexo.Billing.Core.Sri.Ports;
+using Ecunexo.Billing.Infrastructure.Email;
 using Ecunexo.Billing.Infrastructure.Inventory;
 using Ecunexo.Billing.Infrastructure.Sri;
 using Microsoft.Extensions.DependencyInjection;
@@ -343,6 +344,14 @@ public sealed class SriOutboxWorker(
                         item.InvoiceId,
                         cancellationToken)
                     .ConfigureAwait(false);
+
+                await TryNotifyInvoiceEmailAsync(
+                        services,
+                        invoices,
+                        item.EmitterId,
+                        item.InvoiceId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
                 return;
             }
 
@@ -507,5 +516,63 @@ public sealed class SriOutboxWorker(
             : [5, 15, 45, 120, 300];
         var idx = Math.Clamp(attemptCount - 1, 0, schedule.Length - 1);
         return DateTimeOffset.UtcNow.AddSeconds(schedule[idx]);
+    }
+
+    private async Task TryNotifyInvoiceEmailAsync(
+        IServiceProvider services,
+        IInvoiceRepository invoices,
+        Guid emitterId,
+        Guid invoiceId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var notifier = services.GetService<IInvoiceEmailNotifier>();
+            if (notifier is null)
+                return;
+
+            var loaded = await invoices
+                .GetDomainWithTenantAsync(emitterId, invoiceId, cancellationToken)
+                .ConfigureAwait(false);
+            if (loaded is null)
+            {
+                logger.LogWarning(
+                    "No se pudo cargar factura {InvoiceId} para correo al cliente",
+                    invoiceId);
+                return;
+            }
+
+            var (document, tenantId) = loaded.Value;
+            if (tenantId is null || tenantId == Guid.Empty)
+                return;
+
+            // Solo facturas (01); notas de crédito no envían correo automático aquí.
+            if (document.DocumentType.Value != DocumentTypeCode.Factura.Value)
+                return;
+
+            // Consumidor final (9999999999999) no tiene email real.
+            var email = document.Counterparty.Email;
+            if (string.IsNullOrWhiteSpace(email))
+                return;
+
+            var serie = $"{document.Establishment.Value}-{document.EmissionPoint.Value}-{document.Sequential.Value}";
+
+            await notifier.NotifyAuthorizedAsync(
+                tenantId.Value,
+                new InvoiceEmailNotifyRequest(
+                    invoiceId,
+                    email,
+                    document.Counterparty.BusinessName,
+                    document.DocumentType.Value,
+                    serie,
+                    document.AccessKey?.Value,
+                    document.GrandTotal.Amount),
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Fallo no controlado al notificar correo de {InvoiceId}", invoiceId);
+        }
     }
 }
