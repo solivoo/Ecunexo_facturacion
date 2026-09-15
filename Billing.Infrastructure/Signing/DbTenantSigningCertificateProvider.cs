@@ -162,13 +162,21 @@ public sealed class DbTenantSigningCertificateProvider
 
             try
             {
+                var cedula = ruc.Length >= 10 ? ruc[..10] : ruc;
                 await using var cmd = conn.CreateCommand();
                 cmd.CommandText = """
                     SELECT encrypted_data, encrypted_password, nonce, tag, subject, subject_tax_id
                     FROM tenancy.tenant_signing_certificates
-                    WHERE (tenant_id = @tenantId OR subject_tax_id = @ruc)
+                    WHERE (
+                        (tenant_id IS NOT NULL AND tenant_id = @tenantId)
+                        OR subject_tax_id = @ruc
+                        OR subject_tax_id = @cedula
+                        OR (@ruc LIKE subject_tax_id || '%')
+                    )
                       AND is_active = true
-                    ORDER BY created_at DESC
+                    ORDER BY 
+                        CASE WHEN tenant_id = @tenantId THEN 0 ELSE 1 END,
+                        created_at DESC
                     LIMIT 1
                 """;
 
@@ -181,6 +189,11 @@ public sealed class DbTenantSigningCertificateProvider
                 pRuc.ParameterName = "ruc";
                 pRuc.Value = ruc;
                 cmd.Parameters.Add(pRuc);
+
+                var pCedula = cmd.CreateParameter();
+                pCedula.ParameterName = "cedula";
+                pCedula.Value = cedula;
+                cmd.Parameters.Add(pCedula);
 
                 byte[]? encryptedData = null;
                 byte[]? encryptedPassword = null;

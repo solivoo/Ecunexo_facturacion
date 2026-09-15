@@ -475,6 +475,15 @@ public sealed class InvoicesController(
             return denied;
 
         var emitter = await emitterRepository.GetAsync(emitterId, cancellationToken).ConfigureAwait(false);
+        if (emitter is not null
+            && Request.Headers.TryGetValue("X-Tenant-Id", out var tenantHeader)
+            && Guid.TryParse(tenantHeader.FirstOrDefault(), out var reqTenantId))
+        {
+            await emitterRepository.FindPreferredIdByRucAsync(emitter.Ruc.Value, reqTenantId, cancellationToken)
+                .ConfigureAwait(false);
+            emitter = await emitterRepository.GetAsync(emitterId, cancellationToken).ConfigureAwait(false);
+        }
+
         var loaded = await invoiceRepository.GetWithXmlAsync(emitterId, invoiceId, cancellationToken)
             .ConfigureAwait(false);
 
@@ -518,18 +527,31 @@ public sealed class InvoicesController(
                 });
             }
 
-            try
-            {
-                EmitterSigningValidator.EnsureReadyToSign(emitter);
-            }
-            catch (InvalidOperationException ex)
+            if (!emitter.Active)
             {
                 return UnprocessableEntity(new
                 {
-                    error = "emitter.signing_certificate_missing_or_invalid",
-                    message = ex.Message,
+                    error = "emitter.inactive",
+                    message = "El emisor está inactivo y no puede firmar comprobantes.",
                 });
             }
+
+            if (emitter.Certificate is not null)
+            {
+                try
+                {
+                    EmitterSigningValidator.EnsureReadyToSign(emitter);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return UnprocessableEntity(new
+                    {
+                        error = "emitter.signing_certificate_missing_or_invalid",
+                        message = ex.Message,
+                    });
+                }
+            }
+
             byte[] signedXml;
             try
             {
@@ -540,7 +562,7 @@ public sealed class InvoicesController(
             {
                 return UnprocessableEntity(new
                 {
-                    error = "signing.certificate_ruc_mismatch",
+                    error = "emitter.signing_certificate_missing_or_invalid",
                     message = ex.Message,
                 });
             }

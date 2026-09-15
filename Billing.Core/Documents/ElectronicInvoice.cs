@@ -29,11 +29,27 @@ public class ElectronicInvoice : SalesDocument
         Sri.SriEnvironment environment = Sri.SriEnvironment.Production)
     {
         ArgumentNullException.ThrowIfNull(taxRateRepository);
+        ArgumentNullException.ThrowIfNull(counterparty);
+        if (issueDate == default)
+            throw new ArgumentException("La fecha de emisión de la factura es obligatoria.", nameof(issueDate));
         if (lines.Count == 0)
-            throw new ArgumentException("La factura debe tener al menos una línea");
+            throw new ArgumentException("La factura debe tener al menos una línea", nameof(lines));
+
+        foreach (var line in lines)
+        {
+            InvoiceLineValidator.Validate(line);
+        }
+
         InvoiceLineValidator.ValidateAgainstCatalog(lines, issueDate, taxRateRepository);
         var (subtotal, taxTotals, grandTotal) = InvoiceTotalsCalculator.Calculate(lines);
         var payment = PaymentForm.FromCode(paymentFormCode);
+
+        if (counterparty.IdentificationType == "07" && grandTotal.Amount > 50.00m)
+        {
+            throw new ArgumentException(
+                $"Las facturas emitidas a Consumidor Final no pueden superar USD 50.00 según la normativa del SRI (Total actual: ${grandTotal.Amount:F2}). Para montos superiores debe identificar al cliente.",
+                nameof(lines));
+        }
 
         var invoice = new ElectronicInvoice
         {
