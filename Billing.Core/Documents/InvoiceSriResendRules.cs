@@ -7,7 +7,8 @@ namespace Ecunexo.Billing.Core.Documents;
 public static class InvoiceSriResendRules
 {
     public static bool IsResendableState(SriDocumentState state) =>
-        state is SriDocumentState.Signed
+        state is SriDocumentState.Draft
+            or SriDocumentState.Signed
             or SriDocumentState.PendingReception
             or SriDocumentState.Received
             or SriDocumentState.Returned

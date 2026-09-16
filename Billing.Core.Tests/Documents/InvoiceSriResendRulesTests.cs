@@ -9,7 +9,7 @@ public class InvoiceSriResendRulesTests
     [InlineData(SriDocumentState.Signed, true)]
     [InlineData(SriDocumentState.NotAuthorized, true)]
     [InlineData(SriDocumentState.Authorized, false)]
-    [InlineData(SriDocumentState.Draft, false)]
+    [InlineData(SriDocumentState.Draft, true)]
     public void IsResendableState_MatchesExpected(SriDocumentState state, bool expected)
     {
         Assert.Equal(expected, InvoiceSriResendRules.IsResendableState(state));

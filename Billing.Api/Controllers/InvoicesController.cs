@@ -804,6 +804,11 @@ public sealed class InvoicesController(
         if (!InvoiceSriResendRules.IsResendableState(invoice.State))
             return Conflict($"El estado {invoice.State} no admite reenvío al SRI.");
 
+        if (invoice.State is SriDocumentState.Draft)
+        {
+            return await Sign(emitterId, invoiceId, environment, cancellationToken).ConfigureAwait(false);
+        }
+
         var nextId = await invoiceRepository
             .GetNextResendableInvoiceIdAsync(
                 emitterId,
