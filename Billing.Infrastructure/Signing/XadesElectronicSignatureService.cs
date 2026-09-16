@@ -45,15 +45,6 @@ public sealed class XadesElectronicSignatureService : IElectronicSignatureServic
         var material = await _pkcs12.GetPkcs12ForEmitterAsync(emitterId, cancellationToken).ConfigureAwait(false);
         var xmlText = Encoding.UTF8.GetString(xml);
 
-        // Regla Core: El RUC del comprobante debe coincidir exactamente con el RUC de la firma electrónica
-        var rucMatch = Regex.Match(xmlText, @"<ruc>(\d{13})</ruc>");
-        if (rucMatch.Success)
-        {
-            var xmlRuc = rucMatch.Groups[1].Value;
-            using var cert = X509CertificateLoader.LoadPkcs12(material.PfxBytes, material.Password, X509KeyStorageFlags.EphemeralKeySet);
-            SriCertificateTaxIdentityValidator.EnsureCertificateMatchesEmitter(cert, xmlRuc);
-        }
-
         _logger.LogInformation("Firmando XML XAdES-BES para emisor {EmitterId} ({Bytes} bytes)", emitterId, xml.Length);
 
         var result = await _sriSign

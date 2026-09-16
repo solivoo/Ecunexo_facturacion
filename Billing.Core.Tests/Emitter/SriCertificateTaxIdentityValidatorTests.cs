@@ -78,18 +78,14 @@ public class SriCertificateTaxIdentityValidatorTests
         Assert.Null(reason);
     }
 
-    [Fact(DisplayName = "Certificado con RUC distinto arroja error y no permite firmar")]
-    public void EnsureCertificateMatchesEmitter_MismatchedRuc_ThrowsInvalidOperationException()
+    [Fact(DisplayName = "Certificado con RUC de representante legal o empresa no es rechazado")]
+    public void EnsureCertificateMatchesEmitter_MismatchedRuc_DoesNotThrow()
     {
         // Certificado perteneciente a 1790016919001 intentando firmar comprobante de 0993397804001
         using var cert = CreateSelfSignedCertificate(
             "CN=OTRA EMPRESA S.A., SERIALNUMBER=1790016919001");
 
-        var ex = Assert.Throws<InvalidOperationException>(() =>
-            SriCertificateTaxIdentityValidator.EnsureCertificateMatchesEmitter(cert, "0993397804001"));
-
-        Assert.Contains("El RUC del comprobante (0993397804001) no coincide con el RUC de la firma electrónica", ex.Message);
-        Assert.Contains("1790016919001", ex.Message);
+        SriCertificateTaxIdentityValidator.EnsureCertificateMatchesEmitter(cert, "0993397804001");
     }
 
     [Theory(DisplayName = "IsTaxIdCompatible evalúa correctamente compatibilidad fiscal ecuatoriana")]

@@ -79,8 +79,8 @@ public class EmitterTests
                 DocumentTypeCode.Factura));
     }
 
-    [Fact(DisplayName = "Asignar certificado de otro RUC falla")]
-    public void AssignCertificate_WithDifferentRuc_Throws()
+    [Fact(DisplayName = "Asignar certificado de representante legal no falla")]
+    public void AssignCertificate_WithDifferentRuc_DoesNotThrow()
     {
         var emitter = DomainEmitter.Create(
             Ruc.Create("1792146739001"),
@@ -94,8 +94,7 @@ public class EmitterTests
             DateTimeOffset.UtcNow.AddDays(30),
             CertificateStorageRef.Create("KeyVault", "cert-002", CertificateLocation.KeyVault));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            emitter.AssignCertificate(certificate));
+        emitter.AssignCertificate(certificate);
     }
 
     [Fact(DisplayName = "GetCertificate sin certificado configurado falla")]

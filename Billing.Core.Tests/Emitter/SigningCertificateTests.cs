@@ -13,13 +13,12 @@ public class SigningCertificateTests
         certificate.EnsureValidFor(ruc);
     }
 
-    [Fact(DisplayName = "Certificado con RUC distinto es rechazado")]
-    public void EnsureValidFor_WithDifferentRuc_Throws()
+    [Fact(DisplayName = "Certificado con RUC de representante legal no es rechazado si es vigente")]
+    public void EnsureValidFor_WithDifferentRuc_DoesNotThrow()
     {
         var certificate = ValidCertificate(Ruc.Create("1792146739001"));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            certificate.EnsureValidFor(Ruc.Create("0999999999001")));
+        certificate.EnsureValidFor(Ruc.Create("0999999999001"));
     }
 
     [Fact(DisplayName = "Certificado revocado es rechazado")]

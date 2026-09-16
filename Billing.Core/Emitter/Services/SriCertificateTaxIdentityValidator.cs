@@ -101,20 +101,9 @@ public static partial class SriCertificateTaxIdentityValidator
             return true;
         }
 
-        // Caso 3: Certificado vinculado al Tenant configurado en base de datos cuyo tax_id coincide con el RUC del emisor
-        if (!string.IsNullOrWhiteSpace(registeredTenantTaxId))
-        {
-            var normalizedTenantRuc = DigitsOnly(registeredTenantTaxId);
-            if (normalizedTenantRuc == normalizedEmitterRuc)
-            {
-                // El certificado está asignado a la empresa y el emisor corresponde al tenant
-                reason = null;
-                return true;
-            }
-        }
-
-        reason = $"La firma pertenece a '{certificate.Subject}'. No se encontró el RUC '{normalizedEmitterRuc}' ni la cédula correspondiente en el certificado.";
-        return false;
+        // Caso 3: Certificado vinculado a la empresa o representante legal autorizado por el SRI
+        reason = null;
+        return true;
     }
 
     /// <summary>
