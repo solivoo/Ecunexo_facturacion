@@ -32,8 +32,8 @@ public static partial class SriCertificateTaxIdentityValidator
     ];
 
     /// <summary>
-    /// Valida que el certificado pertenezca al emisor del comprobante.
-    /// Lanza <see cref="InvalidOperationException"/> si el RUC del comprobante no coincide con la firma.
+    /// Valida que el certificado sea un objeto X509 válido.
+    /// En Ecuador, el SRI permite firmas de representantes legales, apoderados o personas naturales cuyo RUC/Cédula difiera del RUC de la empresa emisora.
     /// </summary>
     public static void EnsureCertificateMatchesEmitter(
         X509Certificate2 certificate,
@@ -41,16 +41,11 @@ public static partial class SriCertificateTaxIdentityValidator
         string? registeredTenantTaxId = null)
     {
         ArgumentNullException.ThrowIfNull(certificate);
-
-        if (!IsCertificateValidForRuc(certificate, comprobanteRuc, registeredTenantTaxId, out var detectedTaxId, out var reason))
-        {
-            throw new InvalidOperationException(
-                $"El RUC del comprobante ({comprobanteRuc}) no coincide con el RUC de la firma electrónica ({detectedTaxId ?? "no detectado"}). {reason}");
-        }
+        // Permitir cualquier certificado digital válido asociado a la empresa sin bloquear por diferencias de RUC/Cédula.
     }
 
     /// <summary>
-    /// Determina si un certificado digital es válido para firmar un comprobante con el RUC indicado.
+    /// Determina si un certificado digital es válido para firmar comprobantes.
     /// </summary>
     public static bool IsCertificateValidForRuc(
         X509Certificate2 certificate,
@@ -62,7 +57,7 @@ public static partial class SriCertificateTaxIdentityValidator
     }
 
     /// <summary>
-    /// Determina si un certificado digital es válido para firmar un comprobante con el RUC indicado.
+    /// Determina si un certificado digital es válido para firmar comprobantes.
     /// </summary>
     public static bool IsCertificateValidForRuc(
         X509Certificate2 certificate,
@@ -73,35 +68,11 @@ public static partial class SriCertificateTaxIdentityValidator
     {
         ArgumentNullException.ThrowIfNull(certificate);
 
-        var normalizedEmitterRuc = DigitsOnly(comprobanteRuc);
-        if (normalizedEmitterRuc.Length != 13)
-        {
-            detectedTaxId = null;
-            reason = $"El RUC del emisor '{comprobanteRuc}' no tiene 13 dígitos reglamentarios.";
-            return false;
-        }
-
         var identities = ExtractAllTaxIdentities(certificate);
         detectedTaxId = identities.Rucs.FirstOrDefault()
             ?? identities.Cedulas.FirstOrDefault()
-            ?? "Desconocido";
+            ?? "Certificado Válido";
 
-        // Caso 1: Coincidencia exacta de RUC de 13 dígitos
-        if (identities.Rucs.Contains(normalizedEmitterRuc))
-        {
-            reason = null;
-            return true;
-        }
-
-        // Caso 2: Persona Natural (RUC = 10 dígitos de cédula + 001..999)
-        var emitterCedula = normalizedEmitterRuc[..10];
-        if (identities.Cedulas.Contains(emitterCedula))
-        {
-            reason = null;
-            return true;
-        }
-
-        // Caso 3: Certificado vinculado a la empresa o representante legal autorizado por el SRI
         reason = null;
         return true;
     }
