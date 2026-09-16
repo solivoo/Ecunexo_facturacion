@@ -310,6 +310,35 @@ public sealed class EfInvoiceRepository(BillingDbContext db) : IInvoiceRepositor
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
+    public async Task<bool> DeleteDraftAsync(
+        Guid emitterId,
+        Guid invoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await db.Invoices
+            .FirstOrDefaultAsync(x => x.Id == invoiceId && x.EmitterId == emitterId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (entity is null || !string.Equals(entity.State, nameof(SriDocumentState.Draft), StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var outboxRows = await db.SriOutbox
+            .Where(x => x.InvoiceId == invoiceId)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (outboxRows.Count > 0)
+        {
+            db.SriOutbox.RemoveRange(outboxRows);
+        }
+
+        db.Invoices.Remove(entity);
+        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+
     private async Task<ElectronicInvoiceEntity?> LoadInvoiceAsync(
         Guid emitterId,
         Guid invoiceId,

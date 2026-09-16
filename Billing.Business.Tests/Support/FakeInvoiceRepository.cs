@@ -83,4 +83,7 @@ internal sealed class FakeInvoiceRepository : IInvoiceRepository
 
     public Task<DateTimeOffset?> GetAuthorizationDateAsync(Guid invoiceId, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
+
+    public Task<bool> DeleteDraftAsync(Guid emitterId, Guid invoiceId, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
 }

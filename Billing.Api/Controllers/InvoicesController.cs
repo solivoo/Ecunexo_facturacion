@@ -888,6 +888,33 @@ public sealed class InvoicesController(
             messages.Select(m => new SriMessageResponse(m.Identifier, m.Text, m.Detail, m.Type)).ToList()));
     }
 
+    [HttpDelete("{invoiceId:guid}")]
+    public async Task<ActionResult> DeleteDraft(
+        Guid emitterId,
+        Guid invoiceId,
+        CancellationToken cancellationToken)
+    {
+        var denied = await RejectIfCannotViewAsync(invoiceId, cancellationToken).ConfigureAwait(false);
+        if (denied is not null)
+            return denied;
+
+        var deleted = await invoiceRepository.DeleteDraftAsync(emitterId, invoiceId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!deleted)
+        {
+            var loaded = await invoiceRepository.GetWithXmlAsync(emitterId, invoiceId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (loaded is null)
+                return NotFound("Factura no encontrada.");
+
+            return Conflict("Solo los comprobantes en borrador (no firmados ni emitidos al SRI) pueden eliminarse.");
+        }
+
+        return NoContent();
+    }
+
     private async Task<ActionResult?> RejectIfCannotViewAsync(
         Guid invoiceId,
         CancellationToken cancellationToken)

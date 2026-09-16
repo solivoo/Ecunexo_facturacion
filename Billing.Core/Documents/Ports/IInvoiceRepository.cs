@@ -111,6 +111,11 @@ public interface IInvoiceRepository
     Task<DateTimeOffset?> GetAuthorizationDateAsync(
         Guid invoiceId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteDraftAsync(
+        Guid emitterId,
+        Guid invoiceId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record SriMessageResponseDto(string Identifier, string Text, string? Detail, string Type);
