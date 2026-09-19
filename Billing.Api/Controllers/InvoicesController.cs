@@ -426,11 +426,31 @@ public sealed class InvoicesController(
             var issueDate = request.IssueDate
                 ?? DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5));
 
+            var customLines = request.Lines is { Count: > 0 }
+                ? request.Lines.Select(x => new InvoiceLine(
+                    x.LineNumber,
+                    x.Description,
+                    x.Quantity,
+                    new Money(x.UnitPrice),
+                    new Money(x.Discount),
+                    new Money(x.LineTotalWithoutTax),
+                    x.Taxes.Select(t => new LineTax(
+                        t.TaxCode,
+                        t.RateCode,
+                        t.Rate,
+                        new Money(t.TaxableBase),
+                        new Money(t.Value))).ToList(),
+                    x.MainCode,
+                    x.CatalogItemId,
+                    x.ItemKind)).ToList()
+                : null;
+
             var note = ElectronicCreditNote.CreateFromAuthorizedInvoice(
                 invoice,
                 sequential,
                 issueDate,
-                request.Motivo);
+                request.Motivo,
+                customLines);
 
             await invoiceRepository
                 .SaveNewAsync(

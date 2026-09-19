@@ -2,7 +2,8 @@ namespace Ecunexo.Billing.Api.Contracts.Invoices;
 
 public sealed record CreateCreditNoteRequest(
     string Motivo,
-    DateOnly? IssueDate = null);
+    DateOnly? IssueDate = null,
+    IReadOnlyList<InvoiceLineRequest>? Lines = null);
 
 public sealed record CreateCreditNoteResponse(
     Guid CreditNoteId,

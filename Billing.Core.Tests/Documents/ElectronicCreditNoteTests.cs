@@ -54,6 +54,33 @@ public class ElectronicCreditNoteTests
                 "  "));
     }
 
+    [Fact(DisplayName = "NC parcial se crea con líneas personalizadas")]
+    public void CreateFromAuthorizedInvoice_WithCustomLines_CreatesPartialCreditNote()
+    {
+        var invoice = BuildAuthorizedInvoice();
+        var customLine = new InvoiceLine(
+            1,
+            "Servicio parcial",
+            1m,
+            new Money(50m),
+            Money.Zero,
+            new Money(50m),
+            [new LineTax("2", "4", 15m, new Money(50m), new Money(7.50m))]);
+
+        var note = ElectronicCreditNote.CreateFromAuthorizedInvoice(
+            invoice,
+            SequentialNumber.Create("000000002"),
+            new DateOnly(2024, 2, 1),
+            "Devolución parcial",
+            [customLine]);
+
+        Assert.Equal("04", note.DocumentType.Value);
+        Assert.Equal(50m, note.SubtotalWithoutTax.Amount);
+        Assert.Equal(57.50m, note.GrandTotal.Amount);
+        Assert.Single(note.Lines);
+        Assert.Equal("Servicio parcial", note.Lines[0].Description);
+    }
+
     [Fact(DisplayName = "Fecha anterior a la factura es rechazada")]
     public void Create_EarlierIssueDate_Throws()
     {

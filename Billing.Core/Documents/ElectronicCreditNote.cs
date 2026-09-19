@@ -20,7 +20,8 @@ public sealed class ElectronicCreditNote : SalesDocument
         ElectronicInvoice invoice,
         SequentialNumber sequential,
         DateOnly issueDate,
-        string motivo)
+        string motivo,
+        IReadOnlyList<InvoiceLine>? customLines = null)
     {
         ArgumentNullException.ThrowIfNull(invoice);
         ArgumentNullException.ThrowIfNull(sequential);
@@ -43,7 +44,9 @@ public sealed class ElectronicCreditNote : SalesDocument
                 nameof(issueDate));
         }
 
-        var lines = invoice.Lines.Select(CloneLine).ToList();
+        var lines = customLines is { Count: > 0 }
+            ? customLines.Select(CloneLine).ToList()
+            : invoice.Lines.Select(CloneLine).ToList();
         var (subtotal, taxTotals, grandTotal) = InvoiceTotalsCalculator.Calculate(lines);
 
         var note = new ElectronicCreditNote
