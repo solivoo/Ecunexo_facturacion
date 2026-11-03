@@ -13,6 +13,7 @@ using Ecunexo.Billing.Core.Sri;
 using Ecunexo.Billing.Core.Sri.Ports;
 using Ecunexo.Billing.Core.TaxRules;
 using Ecunexo.Billing.Infrastructure.Sri;
+using Ecunexo.Billing.Infrastructure.Xml;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -245,8 +246,24 @@ public sealed class InvoicesController(
 
         if (loaded.Value.SignedXml is { Length: > 0 })
         {
-            xmlText = System.Text.Encoding.UTF8.GetString(loaded.Value.SignedXml);
-            source = "signed";
+            var signedXmlText = System.Text.Encoding.UTF8.GetString(loaded.Value.SignedXml);
+            if (invoice.State == SriDocumentState.Authorized)
+            {
+                var authDate = await invoiceRepository
+                    .GetAuthorizationDateAsync(invoice.Id, cancellationToken)
+                    .ConfigureAwait(false);
+                xmlText = SriAuthorizationXmlEnvelope.WrapSignedComprobante(
+                    signedXmlText,
+                    invoice.AccessKey?.Value,
+                    authDate,
+                    invoice.Environment);
+                source = "authorized";
+            }
+            else
+            {
+                xmlText = signedXmlText;
+                source = "signed";
+            }
         }
         else if (loaded.Value.UnsignedXml is { Length: > 0 })
         {

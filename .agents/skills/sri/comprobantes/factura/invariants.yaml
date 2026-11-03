@@ -1,0 +1,159 @@
+rules:
+  # -------------------------------------------------------------
+  # REGLAS NORMATIVAS DEL SRI (Tipo: sri)
+  # -------------------------------------------------------------
+  - id: FAC-SRI-001
+    name: serie_y_secuencial_validos
+    description: >
+      Toda factura debe contener establecimiento de 3 dígitos (001-999),
+      punto de emisión de 3 dígitos (001-999) y secuencial de 9 dígitos (000000001-999999999).
+    classification:
+      type: sri
+      domain: factura
+    source:
+      document: "SRI-FT-2.32"
+      section: "Estructura infoTributaria"
+    severity: error
+
+  - id: FAC-SRI-002
+    name: requiere_al_menos_un_detalle
+    description: >
+      Una factura electrónica debe contener como mínimo una línea de detalle de producto o servicio.
+    classification:
+      type: sri
+      domain: factura
+    source:
+      document: "SRI-FT-2.32"
+      section: "Estructura detalles"
+    severity: error
+
+  - id: FAC-SRI-003
+    name: identificacion_comprador_valida
+    description: >
+      El comprador debe poseer un tipo de identificación oficial (04, 05, 06, 07, 08)
+      y el número debe superar el algoritmo de validación correspondiente (Módulo 10 Cédula, Módulo 11 RUC).
+    classification:
+      type: sri
+      domain: cliente
+    source:
+      document: "SRI-FT-2.32"
+      section: "Tabla 6 - Tipo de Identificación"
+    severity: error
+
+  - id: FAC-SRI-004
+    name: limite_consumidor_final_50_dolares
+    description: >
+      Las facturas emitidas a Consumidor Final (código 07 / 9999999999999)
+      no pueden exceder de USD $50.00 en su importe total.
+    classification:
+      type: sri
+      domain: factura
+    source:
+      document: "RES-NAC-57-2022"
+      section: "Artículo Único"
+    severity: error
+
+  - id: FAC-SRI-005
+    name: clave_acceso_consistente_modulo11
+    description: >
+      La Clave de Acceso debe poseer 49 dígitos, coincidir con los campos de emisión (fecha, serie, RUC, secuencial)
+      y tener un Dígito Verificador matemáticamente correcto según Módulo 11.
+    classification:
+      type: sri
+      domain: comprobante
+    source:
+      document: "SRI-FT-2.32"
+      section: "Clave de Acceso"
+    severity: error
+
+  - id: FAC-SRI-006
+    name: tarifa_impuesto_vigente_a_fecha_emision
+    description: >
+      Cada línea debe utilizar una tarifa de impuesto (código e IVA códigoPorcentaje)
+      legalmente vigente en la fecha de emisión de la factura.
+    classification:
+      type: sri
+      domain: impuestos
+    source:
+      document: "RES-NAC-13-2024"
+      section: "Tabla 17 - Porcentajes IVA"
+    severity: error
+
+  - id: FAC-SRI-007
+    name: consistencia_formas_pago
+    description: >
+      La suma de los montos de las formas de pago declaradas debe ser exactamente
+      igual al importeTotal de la factura.
+    classification:
+      type: sri
+      domain: pagos
+    source:
+      document: "SRI-FT-2.32"
+      section: "Estructura pagos"
+    severity: error
+
+  - id: FAC-SRI-008
+    name: validacion_estricta_xsd
+    description: >
+      El XML previo a la firma debe ser validado formalmente contra el esquema Factura_V1.1.0.xsd.
+    classification:
+      type: sri
+      domain: xml
+    source:
+      document: "SRI-FT-2.32"
+      section: "Anexo 1 - Esquema XSD Factura v1.1.0"
+    severity: error
+
+  # -------------------------------------------------------------
+  # REGLAS DE NEGOCIO PROPIAS DE ECUNEXO (Tipo: business)
+  # -------------------------------------------------------------
+  - id: FAC-BUS-001
+    name: inmutabilidad_factura_autorizada
+    description: >
+      Una factura en estado AUTHORIZED nunca puede ser editada o eliminada en base de datos.
+      Cualquier rectificación exige la emisión de una Nota de Crédito.
+    classification:
+      type: business
+      domain: factura
+    severity: error
+
+  - id: FAC-BUS-002
+    name: longitud_maxima_informacion_adicional
+    description: >
+      Las notas u observaciones adicionales no pueden superar 300 caracteres para evitar desbordes en el RIDE.
+    classification:
+      type: business
+      domain: metadata
+    severity: error
+
+  - id: FAC-BUS-003
+    name: plazo_pago_no_negativo
+    description: >
+      El plazo de pago en días no puede ser un número negativo.
+    classification:
+      type: business
+      domain: pagos
+    severity: error
+
+  # -------------------------------------------------------------
+  # REGLAS TÉCNICAS Y DE ARQUITECTURA (Tipo: technical)
+  # -------------------------------------------------------------
+  - id: FAC-TEC-001
+    name: redondeo_monetario_half_up
+    description: >
+      Todos los cálculos monetarios de bases imponibles, descuentos e impuestos deben redondearse
+      a 2 decimales usando redondeo simétrico Half-Up (MidpointRounding.AwayFromZero).
+    classification:
+      type: technical
+      domain: calculos
+    severity: error
+
+  - id: FAC-TEC-002
+    name: codificacion_caracteres_xml
+    description: >
+      El XML debe estar codificado en UTF-8 y caracteres especiales (&, <, >, ", ')
+      deben escaparse adecuadamente según la norma XML.
+    classification:
+      type: technical
+      domain: xml
+    severity: error

@@ -1,0 +1,91 @@
+specs:
+  - scenario: factura_sin_detalles_debe_fallar
+    rule_ref: FAC-SRI-002
+    given:
+      invoice:
+        lines: []
+    when:
+      action: "ElectronicInvoice.Create"
+    then:
+      valid: false
+      expected_exception: "ArgumentException"
+      expected_message_contains: "al menos una línea"
+
+  - scenario: consumidor_final_supera_50_dolares_debe_fallar
+    rule_ref: FAC-SRI-004
+    given:
+      counterparty:
+        identificationType: "07"
+        identificationNumber: "9999999999999"
+      lines:
+        - unitPrice: 60.00
+          quantity: 1.00
+          taxes:
+            - taxCode: "2"
+              rateCode: "4" # 15%
+              rate: 15.00
+    when:
+      action: "ElectronicInvoice.Create"
+    then:
+      valid: false
+      expected_exception: "ArgumentException"
+      expected_message_contains: "Consumidor Final no pueden superar USD 50.00"
+
+  - scenario: consumidor_final_hasta_50_dolares_debe_pasar
+    rule_ref: FAC-SRI-004
+    given:
+      counterparty:
+        identificationType: "07"
+        identificationNumber: "9999999999999"
+      lines:
+        - unitPrice: 40.00
+          quantity: 1.00
+          taxes:
+            - taxCode: "2"
+              rateCode: "0" # 0%
+              rate: 0.00
+    when:
+      action: "ElectronicInvoice.Create"
+    then:
+      valid: true
+      grandTotal: 40.00
+
+  - scenario: calculo_consistente_subtotales_e_iva_15
+    rule_ref: FAC-SRI-006
+    given:
+      lines:
+        - quantity: 2.00
+          unitPrice: 10.00
+          discount: 2.00
+          taxes:
+            - taxCode: "2"
+              rateCode: "4" # 15%
+              rate: 15.00
+    when:
+      action: "InvoiceTotalsCalculator.Calculate"
+    then:
+      valid: true
+      subtotalWithoutTax: 18.00
+      taxTotalValue: 2.70
+      grandTotal: 20.70
+
+  - scenario: nota_adicional_supera_300_caracteres_debe_fallar
+    rule_ref: FAC-BUS-002
+    given:
+      additionalNote: "Cadena de más de 300 caracteres..." # 301 chars
+    when:
+      action: "ElectronicInvoice.Create"
+    then:
+      valid: false
+      expected_exception: "ArgumentException"
+      expected_message_contains: "no puede superar 300 caracteres"
+
+  - scenario: clave_acceso_calculo_modulo_11
+    rule_ref: FAC-SRI-005
+    given:
+      first48: "240920260117921467390012001001000000042123456781"
+    when:
+      action: "ClaveAcceso.Create"
+    then:
+      valid: true
+      accessKeyLength: 49

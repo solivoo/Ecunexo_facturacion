@@ -1,0 +1,54 @@
+validations:
+  - id: NC-VAL-001
+    rule_ref: NC-BUS-001
+    name: factura_sustento_autorizada
+    condition: "facturaSustento.state == 'Authorized'"
+    error_message: "Solo se puede emitir nota de crédito sobre una factura autorizada por el SRI."
+
+  - id: NC-VAL-002
+    rule_ref: NC-SRI-004
+    name: fecha_emision_coherente
+    condition: "fechaEmision >= facturaSustento.issueDate"
+    error_message: "La fecha de la nota de crédito no puede ser anterior a la de la factura."
+
+  - id: NC-VAL-003
+    rule_ref: NC-SRI-003
+    name: tope_valor_modificacion
+    condition: "valorModificacion <= facturaSustento.saldoDisponible"
+    error_message: "El valor de modificación supera el saldo remanente de la factura de sustento (Error 43)."
+
+  - id: NC-VAL-004
+    rule_ref: NC-SRI-001
+    name: mascara_numero_modificado
+    condition: "modifiedDocumentNumber.matches('^[0-9]{3}-[0-9]{3}-[0-9]{9}$')"
+    error_message: "El número del documento modificado debe tener exactamente 15 caracteres en formato XXX-XXX-XXXXXXXXX."
+
+  - id: NC-VAL-005
+    rule_ref: NC-BUS-002
+    name: validacion_motivo_longitud
+    condition: "motivo.trim().length >= 1 && motivo.trim().length <= 300"
+    error_message: "El motivo debe tener entre 1 y 300 caracteres."
+
+  - id: NC-VAL-006
+    rule_ref: NC-SRI-001
+    name: presencia_detalles_nc
+    condition: "detalles.length >= 1"
+    error_message: "La nota de crédito debe contener al menos un ítem o detalle."
+
+  - id: NC-VAL-007
+    rule_ref: NC-SRI-002
+    name: concordancia_iva_historico
+    condition: >
+      detalles.all(d =>
+        d.impuestos.all(i =>
+          i.codigoPorcentaje == d.impuestoSustento.codigoPorcentaje &&
+          i.tarifa == d.impuestoSustento.tarifa
+        )
+      )
+    error_message: "La tarifa de IVA debe coincidir exactamente con la que estuvo vigente en la factura de origen (Error 45)."
+
+  - id: NC-VAL-008
+    rule_ref: NC-BUS-003
+    name: bloqueo_por_nc_en_tramite
+    condition: "!facturaSustento.tieneNotaCreditoEnProceso"
+    error_message: "No se puede emitir una nueva Nota de Crédito porque ya existe una en trámite para esta factura."

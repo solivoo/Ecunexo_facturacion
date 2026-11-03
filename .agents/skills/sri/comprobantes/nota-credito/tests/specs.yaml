@@ -1,0 +1,81 @@
+specs:
+  - scenario: nc_sobre_factura_no_autorizada_debe_fallar
+    rule_ref: NC-BUS-001
+    given:
+      invoice:
+        state: "Draft"
+    when:
+      action: "ElectronicCreditNote.CreateFromAuthorizedInvoice"
+    then:
+      valid: false
+      expected_exception: "InvalidOperationException"
+      expected_message_contains: "autorizada por el SRI"
+
+  - scenario: nc_con_fecha_anterior_a_factura_debe_fallar
+    rule_ref: NC-SRI-004
+    given:
+      invoice:
+        issueDate: "2024-02-01"
+        state: "Authorized"
+      creditNote:
+        issueDate: "2024-01-15"
+    when:
+      action: "ElectronicCreditNote.CreateFromAuthorizedInvoice"
+    then:
+      valid: false
+      expected_exception: "ArgumentException"
+      expected_message_contains: "no puede ser anterior"
+
+  - scenario: nc_con_motivo_vacio_debe_fallar
+    rule_ref: NC-BUS-002
+    given:
+      invoice:
+        state: "Authorized"
+      motivo: "   "
+    when:
+      action: "ElectronicCreditNote.CreateFromAuthorizedInvoice"
+    then:
+      valid: false
+      expected_exception: "ArgumentException"
+      expected_message_contains: "motivo"
+
+  - scenario: nc_total_hereda_referencia_y_totales
+    rule_ref: NC-SRI-001
+    given:
+      invoice:
+        state: "Authorized"
+        establishment: "001"
+        emissionPoint: "001"
+        sequential: "000000042"
+        issueDate: "2024-02-01"
+        grandTotal: 115.00
+    when:
+      action: "ElectronicCreditNote.CreateFromAuthorizedInvoice"
+    then:
+      valid: true
+      documentType: "04"
+      modifiedDocumentNumber: "001-001-000000042"
+      modifiedIssueDate: "2024-02-01"
+      grandTotal: 115.00
+
+  - scenario: nc_parcial_con_lineas_personalizadas
+    rule_ref: NC-SRI-002
+    given:
+      invoice:
+        state: "Authorized"
+        grandTotal: 115.00
+      customLines:
+        - quantity: 1.00
+          unitPrice: 50.00
+          discount: 0.00
+          taxes:
+            - taxCode: "2"
+              rateCode: "4" # 15%
+              rate: 15.00
+    when:
+      action: "ElectronicCreditNote.CreateFromAuthorizedInvoice"
+    then:
+      valid: true
+      documentType: "04"
+      subtotalWithoutTax: 50.00
+      grandTotal: 57.50

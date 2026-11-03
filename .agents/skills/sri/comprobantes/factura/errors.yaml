@@ -1,0 +1,35 @@
+errors:
+  - code: "35"
+    name: "DOCUMENTO_MODIFICADO_NO_EXISTE"
+    description: "El documento de sustento referenciado no existe en las bases del SRI o no está en estado AUTORIZADO."
+    mitigation: "Validar que la factura original esté autorizada en el SRI antes de emitir documentos modificatorios."
+
+  - code: "39"
+    name: "SECUENCIAL_REGISTRADO"
+    description: "El secuencial ya fue emitido y autorizado con una clave de acceso diferente para este emisor y serie."
+    mitigation: "Avanzar el contador de secuencial en la base de datos al siguiente número disponible."
+
+  - code: "43"
+    name: "CLAVE_ACCESO_REGISTRADA"
+    description: "La clave de acceso ya fue recibida por el SRI previamente."
+    mitigation: "No volver a enviar a Recepción; consultar directamente al WebService de Autorización con la misma clave."
+
+  - code: "45"
+    name: "TARIFA_NO_CORRESPONDE"
+    description: "La tarifa de impuesto enviada no corresponde al catálogo legal vigente para la fecha de emisión."
+    mitigation: "Validar el catálogo de tasas vigente contra la fecha de emisión antes de armar el XML."
+
+  - code: "46"
+    name: "ERROR_EN_TOTALES"
+    description: "Inconsistencia aritmética entre los subtotales de las líneas, los impuestos calculados y el importe total."
+    mitigation: "Utilizar InvoiceTotalsCalculator con redondeo Half-Up en cada línea antes de totalizar."
+
+  - code: "50"
+    name: "FIRMA_ELECTRONICA_INVALIDA"
+    description: "El certificado digital ha expirado, está revocado, o el XML fue alterado posterior al firmado."
+    mitigation: "Validar vigencia del certificado .p12 y garantizar que el XML firmado no sufra modificaciones antes de la transmisión."
+
+  - code: "70"
+    name: "ERROR_DE_ESQUEMA_XSD"
+    description: "El XML no cumple con la estructura estricta del esquema Factura_V1.1.0.xsd (campos faltantes, tipos de datos erróneos o longitudes excedidas)."
+    mitigation: "Ejecutar validación de esquema XSD en memoria previo a la invocación de la firma digital."

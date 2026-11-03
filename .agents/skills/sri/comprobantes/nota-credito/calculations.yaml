@@ -1,0 +1,36 @@
+calculations:
+  - id: NC-CALC-001
+    name: subtotal_linea_nc
+    description: "Subtotal descontado de la línea objeto de modificación"
+    formula: "round_2(linea.cantidad * linea.precioUnitario - linea.descuento)"
+
+  - id: NC-CALC-002
+    name: total_sin_impuestos_nc
+    description: "Suma de los subtotales de las líneas modificadas"
+    formula: "sum(detalles.map(d => d.precioTotalSinImpuesto))"
+
+  - id: NC-CALC-003
+    name: valor_impuesto_linea_nc
+    description: "Impuesto calculado usando la tarifa histórica de la factura de sustento"
+    formula: "round_2(linea.subtotal_linea_nc * (linea.tarifaHistorica / 100))"
+
+  - id: NC-CALC-004
+    name: valor_modificacion_total
+    description: "Monto total monetario a disminuir (campo <valorModificacion> en XML)"
+    formula: "total_sin_impuestos_nc + sum(totalConImpuestos.map(t => t.valor))"
+
+  - id: NC-CALC-005
+    name: saldo_remanente_factura
+    description: "Nuevo saldo de la factura tras aplicar la Nota de Crédito"
+    formula: "max(0.00, factura.saldoPendiente - valor_modificacion_total)"
+
+  - id: NC-CALC-006
+    name: credito_a_favor_cliente
+    description: "Anticipo a favor del cliente si la factura ya estaba completamente cancelada"
+    formula: "max(0.00, valor_modificacion_total - factura.saldoPendiente)"
+
+  - id: NC-CALC-007
+    name: nuevo_cpp_kardex
+    description: "Recálculo del Costo Promedio Ponderado por reingreso de mercaderías devueltas"
+    formula: >
+      ((stockPrevio * cppPrevio) + (cantidadDevuelta * costoUnitarioDevolucion)) / (stockPrevio + cantidadDevuelta)

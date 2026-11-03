@@ -61,7 +61,13 @@ public sealed class SriFacturaXmlGenerator : IElectronicInvoiceXmlGenerator
             new XElement(
                 "pago",
                 new XElement("formaPago", invoice.PaymentFormCode),
-                new XElement("total", Money2(invoice.GrandTotal.Amount))));
+                new XElement("total", Money2(invoice.GrandTotal.Amount)),
+                invoice.PaymentTermDays > 0
+                    ? new XElement("plazo", invoice.PaymentTermDays.ToString(CultureInfo.InvariantCulture))
+                    : null,
+                invoice.PaymentTermDays > 0
+                    ? new XElement("unidadTiempo", "dias")
+                    : null));
 
         var estabAddress = string.IsNullOrWhiteSpace(emitter.EstablishmentAddress)
             ? emitter.MainAddress

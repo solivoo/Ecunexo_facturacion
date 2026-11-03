@@ -1,4 +1,5 @@
 using Ecunexo.Billing.Core;
+using Ecunexo.Billing.Core.Sri;
 using Ecunexo.Billing.Core.Documents;
 using Ecunexo.Billing.Core.Emitter;
 using Ecunexo.Billing.Core.Emitter.Ports;
@@ -277,5 +278,83 @@ public class SriFacturaXmlGeneratorTests
         Assert.Equal('1', accessKey.Value[23]);
         Assert.Contains("<ambiente>1</ambiente>", xmlText);
         Assert.DoesNotContain("<ambiente>2</ambiente>", xmlText);
+    }
+
+    [Fact(DisplayName = "XML factura con plazo y contribuyenteEspecial pasa validación XSD v1.1.0")]
+    public void BuildXml_WithPaymentTermAndContribuyenteEspecial_ValidatesAgainstXsd()
+    {
+        var line = new InvoiceLine(
+            1,
+            "Servicio a crédito",
+            1m,
+            new Money(100m),
+            Money.Zero,
+            new Money(100m),
+            [new LineTax("2", "4", 15m, new Money(100m), new Money(15m))]);
+
+        var invoice = ElectronicInvoice.Create(
+            Ruc.Create("1792146739001"),
+            EstablishmentCode.Create("001"),
+            EmissionPoint.Create("001"),
+            SequentialNumber.Create("000000002"),
+            new DateOnly(2026, 11, 2),
+            Counterparty.Create("04", "0999999999001", "Cliente Crédito SA", "Quito", "cliente@demo.ec", "0991112222"),
+            [line],
+            BuildTaxRepo(),
+            "20",
+            "Crédito 30 días",
+            30);
+
+        var accessKey = ClaveAcceso.Create(new ClaveAccesoComponents(
+            invoice.IssueDate,
+            invoice.DocumentType,
+            invoice.EmitterRuc,
+            "2",
+            invoice.Establishment,
+            invoice.EmissionPoint,
+            invoice.Sequential,
+            12345678,
+            "1"));
+        invoice.MarkSigned(accessKey);
+
+        var emitterCtx = new InvoiceXmlEmitterContext(
+            "Emisor Especial SA",
+            "Av. Amazonas N34",
+            "Emisor Especial",
+            EstablishmentAddress: "Sucursal Norte",
+            ObligadoContabilidad: "SI",
+            ContribuyenteEspecial: "5368");
+
+        var xml = new SriFacturaXmlGenerator().BuildXml(invoice, emitterCtx, accessKey);
+        var xmlText = System.Text.Encoding.UTF8.GetString(xml);
+
+        Assert.Contains("<contribuyenteEspecial>5368</contribuyenteEspecial>", xmlText);
+        Assert.Contains("<plazo>30</plazo>", xmlText);
+        Assert.Contains("<unidadTiempo>dias</unidadTiempo>", xmlText);
+
+        var validator = new XsdElectronicDocumentXmlValidator(NullLogger<XsdElectronicDocumentXmlValidator>.Instance);
+        var result = validator.Validate(xml, ElectronicDocumentSchema.FacturaV110);
+        Assert.True(result.IsValid, string.Join(" | ", result.Errors));
+    }
+
+    [Fact(DisplayName = "SriAuthorizationXmlEnvelope genera contenedor <autorizacion> SRI válido con CDATA")]
+    public void WrapSignedComprobante_ProducesValidSriAutorizacionEnvelope()
+    {
+        const string signedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><factura id=\"comprobante\" version=\"1.1.0\"><infoTributaria/></factura>";
+        const string accessKey = "0211202601179214673900120010010000000021234567818";
+        var authDate = new DateTimeOffset(2026, 11, 2, 21, 30, 15, TimeSpan.FromHours(-5));
+
+        var wrapped = SriAuthorizationXmlEnvelope.WrapSignedComprobante(
+            signedXml,
+            accessKey,
+            authDate,
+            SriEnvironment.Production);
+
+        Assert.Contains("<autorizacion>", wrapped);
+        Assert.Contains("<estado>AUTORIZADO</estado>", wrapped);
+        Assert.Contains($"<numeroAutorizacion>{accessKey}</numeroAutorizacion>", wrapped);
+        Assert.Contains("<fechaAutorizacion class=\"fechaAutorizacion\">02/11/2026 21:30:15</fechaAutorizacion>", wrapped);
+        Assert.Contains("<ambiente>PRODUCCION</ambiente>", wrapped);
+        Assert.Contains("<comprobante><![CDATA[<?xml version=\"1.0\" encoding=\"UTF-8\"?><factura id=\"comprobante\" version=\"1.1.0\"><infoTributaria/></factura>]]></comprobante>", wrapped);
     }
 }

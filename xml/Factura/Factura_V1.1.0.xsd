@@ -78,6 +78,13 @@
 			<xsd:pattern value="[^\n]*"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	<xsd:simpleType name="contribuyenteEspecial">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="3"/>
+			<xsd:maxLength value="13"/>
+			<xsd:pattern value="[A-Za-z0-9]*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 	<xsd:simpleType name="obligadoContabilidad">
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="SI"/>
@@ -244,6 +251,19 @@
 			<xsd:minInclusive value="0"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	<xsd:simpleType name="plazo">
+		<xsd:restriction base="xsd:decimal">
+			<xsd:totalDigits value="14"/>
+			<xsd:fractionDigits value="2"/>
+			<xsd:minInclusive value="0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="unidadTiempo">
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="10"/>
+			<xsd:pattern value="[^\n]*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="infoTributaria">
 		<xsd:sequence>
@@ -296,6 +316,8 @@
 						<xsd:sequence>
 							<xsd:element name="formaPago" type="formaPago"/>
 							<xsd:element name="total" type="total"/>
+							<xsd:element name="plazo" minOccurs="0" type="plazo"/>
+							<xsd:element name="unidadTiempo" minOccurs="0" type="unidadTiempo"/>
 						</xsd:sequence>
 					</xsd:complexType>
 				</xsd:element>
@@ -312,6 +334,7 @@
 						<xsd:sequence>
 							<xsd:element name="fechaEmision" type="fechaEmision"/>
 							<xsd:element name="dirEstablecimiento" minOccurs="0" type="dirEstablecimiento"/>
+							<xsd:element name="contribuyenteEspecial" minOccurs="0" type="contribuyenteEspecial"/>
 							<xsd:element name="obligadoContabilidad" minOccurs="0" type="obligadoContabilidad"/>
 							<xsd:element name="tipoIdentificacionComprador" type="tipoIdentificacionComprador"/>
 							<xsd:element name="razonSocialComprador" type="razonSocialComprador"/>

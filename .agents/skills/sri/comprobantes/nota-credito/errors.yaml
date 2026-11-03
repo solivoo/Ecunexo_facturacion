@@ -1,0 +1,25 @@
+errors:
+  - code: "35"
+    name: "DOCUMENTO_MODIFICADO_NO_EXISTE"
+    description: "La factura de sustento referenciada no existe o no se encuentra en estado AUTORIZADO en el SRI."
+    mitigation: "Verificar en backend que la factura de origen tenga estado 'Authorized' antes de invocar la emisión de la NC."
+
+  - code: "43"
+    name: "VALOR_MODIFICACION_SUPERA_SUSTENTO"
+    description: "El valor de la Nota de Crédito excede el valor pendiente de la Factura de origen o el total permitido."
+    mitigation: "Validar el saldo remanente de la factura acumulando todas las notas de crédito previas antes de emitir."
+
+  - code: "45"
+    name: "TARIFA_IVA_NO_CORRESPONDE_A_SUSTENTO"
+    description: "La tarifa de IVA utilizada no coincide con la tarifa oficial vigente a la fecha del comprobante de sustento."
+    mitigation: "Heredar el 'codigoPorcentaje' y la tasa directamente del detalle de la factura original."
+
+  - code: "50"
+    name: "FIRMA_ELECTRONICA_INVALIDA"
+    description: "Certificado caducado, revocado o XML modificado posterior a la firma."
+    mitigation: "Verificar vigencia del certificado .p12 antes de procesar el archivo."
+
+  - code: "70"
+    name: "ERROR_ESQUEMA_XSD"
+    description: "El XML no cumple con la estructura requerida por ValidadorNotaCredito_V1.1.0.xsd."
+    mitigation: "Validar sintácticamente el XML generado contra el esquema XSD antes del firmado."

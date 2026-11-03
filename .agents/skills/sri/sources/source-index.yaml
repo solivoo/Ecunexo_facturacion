@@ -1,0 +1,37 @@
+sources:
+  - id: "SRI-FT-2.32"
+    title: "Ficha Técnica de Comprobantes Electrónicos Esquema Offline"
+    version: "2.32"
+    authority: "SRI"
+    status: "vigente"
+    topics:
+      - "Clave de Acceso"
+      - "Estructura XML Factura v1.1.0"
+      - "Estructura XML Nota de Crédito v1.1.0"
+      - "XAdES-BES"
+      - "Catálogo de Errores WebService"
+
+  - id: "RES-NAC-57-2022"
+    title: "Resolución NAC-DGERCGC22-00000057"
+    authority: "SRI"
+    published_date: "2022-11-29"
+    status: "vigente"
+    topics:
+      - "Límite de Facturación a Consumidor Final ($50.00)"
+
+  - id: "LEY-CONF-2024"
+    title: "Ley Orgánica para Enfrentar el Conflicto Armado Interno"
+    authority: "Asamblea Nacional / Presidencia de la República"
+    effective_from: "2024-04-01"
+    status: "vigente"
+    topics:
+      - "Incremento IVA General 15%"
+      - "IVA Reducido 5% Materiales de Construcción"
+
+  - id: "RES-NAC-13-2024"
+    title: "Resolución NAC-DGERCGC24-00000013"
+    authority: "SRI"
+    effective_from: "2024-04-01"
+    status: "vigente"
+    topics:
+      - "Catálogo Tabla 17 Porcentajes de IVA (Códigos 4 y 5)"

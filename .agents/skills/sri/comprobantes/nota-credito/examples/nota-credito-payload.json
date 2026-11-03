@@ -1,0 +1,61 @@
+{
+  "emitter": {
+    "ruc": "1792146739001",
+    "legalName": "ECUNEXO TECH SERVICES S.A.S.",
+    "tradeName": "ECUNEXO",
+    "mainAddress": "Av. República del Salvador 1084 y Suecia, Quito",
+    "obligedToKeepAccounting": true
+  },
+  "establishment": {
+    "code": "001",
+    "address": "Av. República del Salvador 1084, Oficina 502"
+  },
+  "emissionPoint": {
+    "code": "001"
+  },
+  "sequential": "000000001",
+  "issueDate": "2026-09-24",
+  "environment": "Production",
+  "counterparty": {
+    "identificationType": "04",
+    "identificationNumber": "1790016919001",
+    "name": "CORPORACION FAVORITA C.A."
+  },
+  "sustento": {
+    "modifiedDocumentType": "01",
+    "modifiedDocumentNumber": "001-001-000000042",
+    "modifiedIssueDate": "2026-09-20"
+  },
+  "motivo": "Devolución parcial de mercadería por error de despacho",
+  "lines": [
+    {
+      "itemCode": "SRV-001",
+      "description": "Suscripción Mensual SaaS EcuNexo Enterprise",
+      "quantity": 1.0,
+      "unitPrice": 100.0,
+      "discount": 10.0,
+      "lineTotalWithoutTax": 90.0,
+      "taxes": [
+        {
+          "taxCode": "2",
+          "rateCode": "4",
+          "rate": 15.0,
+          "taxableBase": 90.0,
+          "value": 13.5
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "subtotalWithoutTax": 90.0,
+    "taxTotals": [
+      {
+        "taxCode": "2",
+        "rateCode": "4",
+        "taxableBase": 90.0,
+        "value": 13.5
+      }
+    ],
+    "grandTotal": 103.5
+  }
+}

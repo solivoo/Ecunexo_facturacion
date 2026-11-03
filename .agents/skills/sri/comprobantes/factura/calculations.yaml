@@ -1,0 +1,54 @@
+calculations:
+  - id: FAC-CALC-001
+    name: subtotal_linea_bruto
+    description: "Importe de la línea sin descuento"
+    formula: "round_2(linea.cantidad * linea.precioUnitario)"
+
+  - id: FAC-CALC-002
+    name: subtotal_linea_neto
+    description: "Importe de la línea descontado (precioTotalSinImpuesto)"
+    formula: "round_2(linea.cantidad * linea.precioUnitario - linea.descuento)"
+
+  - id: FAC-CALC-003
+    name: base_imponible_impuesto_linea
+    description: "Base sobre la cual se aplica la tarifa del impuesto"
+    formula: "linea.subtotal_linea_neto"
+
+  - id: FAC-CALC-004
+    name: valor_impuesto_linea
+    description: "Valor en dólares del impuesto generado por la línea"
+    formula: "round_2(linea.base_imponible * (linea.tarifa / 100))"
+
+  - id: FAC-CALC-005
+    name: total_sin_impuestos
+    description: "Subtotal acumulado de todas las líneas de la factura"
+    formula: "sum(detalles.map(d => d.precioTotalSinImpuesto))"
+
+  - id: FAC-CALC-006
+    name: total_descuento
+    description: "Suma total de los descuentos concedidos en las líneas"
+    formula: "sum(detalles.map(d => d.descuento))"
+
+  - id: FAC-CALC-007
+    name: agrupacion_impuestos_totales
+    description: "Agrupación obligatoria de impuestos por código y códigoPorcentaje para infoFactura"
+    formula: >
+      detalles
+        .flatMap(d => d.impuestos)
+        .groupBy(t => [t.codigo, t.codigoPorcentaje])
+        .map(group => ({
+          codigo: group.key[0],
+          codigoPorcentaje: group.key[1],
+          baseImponible: sum(group.items.map(i => i.baseImponible)),
+          valor: sum(group.items.map(i => i.valor))
+        }))
+
+  - id: FAC-CALC-008
+    name: suma_total_impuestos
+    description: "Monto total acumulado de impuestos"
+    formula: "sum(agrupacion_impuestos_totales.map(g => g.valor))"
+
+  - id: FAC-CALC-009
+    name: importe_total
+    description: "Gran total de la factura a cobrar al cliente"
+    formula: "total_sin_impuestos + suma_total_impuestos + propina"

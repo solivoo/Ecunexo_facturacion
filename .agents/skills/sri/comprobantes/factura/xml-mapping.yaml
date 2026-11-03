@@ -1,0 +1,127 @@
+mapping:
+  target_root: "factura"
+  target_version: "1.1.0"
+  target_id: "comprobante"
+
+  infoTributaria:
+    factura.infoTributaria.ambiente:
+      source: "invoice.environment == Production ? '2' : '1'"
+      type: "string(1)"
+    factura.infoTributaria.tipoEmision:
+      source: "'1'"
+      type: "string(1)"
+    factura.infoTributaria.razonSocial:
+      source: "invoice.emitter.legalName"
+      type: "string(1..300)"
+    factura.infoTributaria.nombreComercial:
+      source: "invoice.emitter.tradeName"
+      type: "string(1..300)?"
+    factura.infoTributaria.ruc:
+      source: "invoice.emitter.ruc"
+      type: "string(13)"
+    factura.infoTributaria.claveAcceso:
+      source: "invoice.accessKey"
+      type: "string(49)"
+    factura.infoTributaria.codDoc:
+      source: "'01'"
+      type: "string(2)"
+    factura.infoTributaria.estab:
+      source: "invoice.establishment.code.padLeft(3, '0')"
+      type: "string(3)"
+    factura.infoTributaria.ptoEmi:
+      source: "invoice.emissionPoint.code.padLeft(3, '0')"
+      type: "string(3)"
+    factura.infoTributaria.secuencial:
+      source: "invoice.sequential.code.padLeft(9, '0')"
+      type: "string(9)"
+    factura.infoTributaria.dirMatriz:
+      source: "invoice.emitter.mainAddress"
+      type: "string(1..300)"
+    factura.infoTributaria.regimenRimpe:
+      source: "invoice.emitter.rimpeTag"
+      type: "string?"
+    factura.infoTributaria.agenteRetencion:
+      source: "invoice.emitter.retentionAgentResolution"
+      type: "string?"
+
+  infoFactura:
+    factura.infoFactura.fechaEmision:
+      source: "invoice.issueDate.format('dd/MM/yyyy')"
+      type: "string(10)"
+    factura.infoFactura.dirEstablecimiento:
+      source: "invoice.establishment.address"
+      type: "string(1..300)"
+    factura.infoFactura.contribuyenteEspecial:
+      source: "invoice.emitter.specialTaxpayerCode"
+      type: "string(3..5)?"
+    factura.infoFactura.obligadoContabilidad:
+      source: "invoice.emitter.obligedToKeepAccounting ? 'SI' : 'NO'"
+      type: "string(2)"
+    factura.infoFactura.tipoIdentificacionComprador:
+      source: "invoice.counterparty.identificationType"
+      type: "string(2)"
+    factura.infoFactura.razonSocialComprador:
+      source: "invoice.counterparty.name"
+      type: "string(1..300)"
+    factura.infoFactura.identificacionComprador:
+      source: "invoice.counterparty.identificationNumber"
+      type: "string(1..20)"
+    factura.infoFactura.direccionComprador:
+      source: "invoice.counterparty.address"
+      type: "string(1..300)?"
+    factura.infoFactura.totalSinImpuestos:
+      source: "invoice.subtotalWithoutTax.format('F2')"
+      type: "decimal(2)"
+    factura.infoFactura.totalDescuento:
+      source: "invoice.totalDiscount.format('F2')"
+      type: "decimal(2)"
+    factura.infoFactura.totalConImpuestos.totalImpuesto:
+      source: "invoice.taxTotals"
+      iteration:
+        codigo: "taxTotal.taxCode"
+        codigoPorcentaje: "taxTotal.rateCode"
+        baseImponible: "taxTotal.taxableBase.format('F2')"
+        valor: "taxTotal.value.format('F2')"
+    factura.infoFactura.propina:
+      source: "invoice.tip.format('F2')"
+      type: "decimal(2)"
+    factura.infoFactura.importeTotal:
+      source: "invoice.grandTotal.format('F2')"
+      type: "decimal(2)"
+    factura.infoFactura.moneda:
+      source: "'DOLAR'"
+      type: "string"
+    factura.infoFactura.pagos.pago:
+      source: "invoice.payments"
+      iteration:
+        formaPago: "payment.code"
+        total: "payment.amount.format('F2')"
+        plazo: "payment.termDays"
+        unidadTiempo: "'dias'"
+
+  detalles:
+    factura.detalles.detalle:
+      source: "invoice.lines"
+      iteration:
+        codigoPrincipal: "line.itemCode"
+        codigoAuxiliar: "line.auxCode?"
+        descripcion: "line.description"
+        cantidad: "line.quantity.format('0.00####')"
+        precioUnitario: "line.unitPrice.format('0.00####')"
+        descuento: "line.discount.format('F2')"
+        precioTotalSinImpuesto: "line.lineTotalWithoutTax.format('F2')"
+        impuestos.impuesto:
+          source: "line.taxes"
+          iteration:
+            codigo: "tax.taxCode"
+            codigoPorcentaje: "tax.rateCode"
+            tarifa: "tax.rate.format('F2')"
+            baseImponible: "tax.taxableBase.format('F2')"
+            valor: "tax.value.format('F2')"
+
+  infoAdicional:
+    factura.infoAdicional.campoAdicional:
+      source: "invoice.additionalFields"
+      iteration:
+        attribute_nombre: "field.key"
+        content: "field.value"

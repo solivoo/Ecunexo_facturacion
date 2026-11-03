@@ -1,0 +1,91 @@
+{
+  "emitter": {
+    "ruc": "1792146739001",
+    "legalName": "ECUNEXO TECH SERVICES S.A.S.",
+    "tradeName": "ECUNEXO",
+    "mainAddress": "Av. República del Salvador 1084 y Suecia, Quito",
+    "specialTaxpayerCode": null,
+    "obligedToKeepAccounting": true,
+    "rimpeTag": null,
+    "retentionAgentResolution": null
+  },
+  "establishment": {
+    "code": "001",
+    "address": "Av. República del Salvador 1084, Oficina 502"
+  },
+  "emissionPoint": {
+    "code": "001"
+  },
+  "sequential": "000000042",
+  "issueDate": "2026-09-24",
+  "environment": "Production",
+  "counterparty": {
+    "identificationType": "04",
+    "identificationNumber": "1790016919001",
+    "name": "CORPORACION FAVORITA C.A.",
+    "address": "Av. General Enríquez km 5.5",
+    "email": "facturas@favorita.com"
+  },
+  "lines": [
+    {
+      "itemCode": "SRV-001",
+      "description": "Suscripción Mensual SaaS EcuNexo Enterprise",
+      "quantity": 1.0,
+      "unitPrice": 100.0,
+      "discount": 10.0,
+      "lineTotalWithoutTax": 90.0,
+      "taxes": [
+        {
+          "taxCode": "2",
+          "rateCode": "4",
+          "rate": 15.0,
+          "taxableBase": 90.0,
+          "value": 13.5
+        }
+      ]
+    },
+    {
+      "itemCode": "SRV-002",
+      "description": "Capacitación Técnica Remota",
+      "quantity": 2.0,
+      "unitPrice": 50.0,
+      "discount": 0.0,
+      "lineTotalWithoutTax": 100.0,
+      "taxes": [
+        {
+          "taxCode": "2",
+          "rateCode": "4",
+          "rate": 15.0,
+          "taxableBase": 100.0,
+          "value": 15.0
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "subtotalWithoutTax": 190.0,
+    "totalDiscount": 10.0,
+    "taxTotals": [
+      {
+        "taxCode": "2",
+        "rateCode": "4",
+        "taxableBase": 190.0,
+        "value": 28.5
+      }
+    ],
+    "tip": 0.0,
+    "grandTotal": 218.5
+  },
+  "payments": [
+    {
+      "code": "20",
+      "amount": 218.5,
+      "termDays": 30,
+      "timeUnit": "dias"
+    }
+  ],
+  "additionalFields": {
+    "OrdenCompra": "OC-2026-9912",
+    "Vendedor": "Solivo Agente"
+  }
+}

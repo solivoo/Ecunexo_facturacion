@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<factura id="comprobante" version="1.1.0">
+  <infoTributaria>
+    <ambiente>2</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>ECUNEXO TECH SERVICES S.A.S.</razonSocial>
+    <nombreComercial>ECUNEXO</nombreComercial>
+    <ruc>1792146739001</ruc>
+    <claveAcceso>2409202601179214673900120010010000000421234567818</claveAcceso>
+    <codDoc>01</codDoc>
+    <estab>001</estab>
+    <ptoEmi>001</ptoEmi>
+    <secuencial>000000042</secuencial>
+    <dirMatriz>Av. República del Salvador 1084 y Suecia, Quito</dirMatriz>
+  </infoTributaria>
+  <infoFactura>
+    <fechaEmision>24/09/2026</fechaEmision>
+    <dirEstablecimiento>Av. República del Salvador 1084, Oficina 502</dirEstablecimiento>
+    <obligadoContabilidad>SI</obligadoContabilidad>
+    <tipoIdentificacionComprador>04</tipoIdentificacionComprador>
+    <razonSocialComprador>CORPORACION FAVORITA C.A.</razonSocialComprador>
+    <identificacionComprador>1790016919001</identificacionComprador>
+    <direccionComprador>Av. General Enríquez km 5.5</direccionComprador>
+    <totalSinImpuestos>190.00</totalSinImpuestos>
+    <totalDescuento>10.00</totalDescuento>
+    <totalConImpuestos>
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>4</codigoPorcentaje>
+        <baseImponible>190.00</baseImponible>
+        <valor>28.50</valor>
+      </totalImpuesto>
+    </totalConImpuestos>
+    <propina>0.00</propina>
+    <importeTotal>218.50</importeTotal>
+    <moneda>DOLAR</moneda>
+    <pagos>
+      <pago>
+        <formaPago>20</formaPago>
+        <total>218.50</total>
+        <plazo>30</plazo>
+        <unidadTiempo>dias</unidadTiempo>
+      </pago>
+    </pagos>
+  </infoFactura>
+  <detalles>
+    <detalle>
+      <codigoPrincipal>SRV-001</codigoPrincipal>
+      <descripcion>Suscripción Mensual SaaS EcuNexo Enterprise</descripcion>
+      <cantidad>1.00</cantidad>
+      <precioUnitario>100.00</precioUnitario>
+      <descuento>10.00</descuento>
+      <precioTotalSinImpuesto>90.00</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>4</codigoPorcentaje>
+          <tarifa>15.00</tarifa>
+          <baseImponible>90.00</baseImponible>
+          <valor>13.50</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>
+    <detalle>
+      <codigoPrincipal>SRV-002</codigoPrincipal>
+      <descripcion>Capacitación Técnica Remota</descripcion>
+      <cantidad>2.00</cantidad>
+      <precioUnitario>50.00</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>100.00</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>4</codigoPorcentaje>
+          <tarifa>15.00</tarifa>
+          <baseImponible>100.00</baseImponible>
+          <valor>15.00</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>
+  </detalles>
+  <infoAdicional>
+    <campoAdicional nombre="OrdenCompra">OC-2026-9912</campoAdicional>
+    <campoAdicional nombre="Vendedor">Solivo Agente</campoAdicional>
+  </infoAdicional>
+</factura>

@@ -1,0 +1,39 @@
+changes:
+  - id: "CHG-2024-002"
+    effective_from: "2024-04-01"
+    authority: "Presidencia de la República / SRI"
+    resolution: "Ley Orgánica para Enfrentar el Conflicto Armado Interno / Res. NAC-DGERCGC24-00000013"
+    description: >
+      Incremento de la tarifa general de IVA del 12% al 15% (Código porcentaje 4).
+      Creación de tarifa reducida del 5% para materiales de construcción (Código porcentaje 5).
+    impacts:
+      - "shared/impuestos.md"
+      - "comprobantes/factura/invariants.yaml"
+      - "Billing.Core/TaxCatalog/TaxRate.cs"
+
+  - id: "CHG-2024-001"
+    effective_from: "2024-01-01"
+    effective_to: "2024-03-31"
+    description: "Tarifa temporal de IVA al 13% (Código porcentaje 10)."
+    impacts:
+      - "shared/impuestos.md"
+
+  - id: "CHG-2022-001"
+    effective_from: "2022-11-29"
+    authority: "SRI"
+    resolution: "Resolución NAC-DGERCGC22-00000057"
+    description: >
+      Se reduce el monto máximo para emisión de facturas a Consumidor Final de $200.00 a $50.00 USD.
+    impacts:
+      - "shared/identificacion-contribuyente.md"
+      - "comprobantes/factura/invariants.yaml (FAC-SRI-004)"
+      - "Billing.Core/Documents/ElectronicInvoice.cs"
+
+  - id: "CHG-2018-001"
+    effective_from: "2018-01-01"
+    authority: "SRI"
+    description: >
+      Adopción universal del Esquema Offline (Ficha Técnica v2.x) y deprecación del Esquema Online.
+    impacts:
+      - "shared/clave-acceso.md"
+      - "comprobantes/factura/workflow.md"

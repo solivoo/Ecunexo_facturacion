@@ -1,0 +1,138 @@
+rules:
+  # -------------------------------------------------------------
+  # REGLAS NORMATIVAS DEL SRI (Tipo: sri)
+  # -------------------------------------------------------------
+  - id: NC-SRI-001
+    name: referencia_sustento_obligatoria
+    description: >
+      Toda Nota de Crédito debe incluir obligatoriamente el tipo de documento modificado (01),
+      el número de comprobante con máscara XXX-XXX-XXXXXXXXX (15 caracteres)
+      y la fecha de emisión del documento de sustento en formato dd/MM/yyyy.
+    classification:
+      type: sri
+      domain: nota_credito
+    source:
+      document: "SRI-FT-2.32"
+      section: "Estructura infoNotaCredito"
+    severity: error
+
+  - id: NC-SRI-002
+    name: regla_de_oro_iva_historico
+    description: >
+      La tarifa de IVA (codigoPorcentaje y tarifa) aplicada en la Nota de Crédito
+      DEBE ser exactamente la que estuvo vigente en la fecha de emisión del comprobante de sustento,
+      sin importar la tarifa vigente en el momento de emitir la Nota de Crédito.
+    classification:
+      type: sri
+      domain: impuestos
+    source:
+      document: "SRI-FT-2.32"
+      section: "Validaciones de Nota de Crédito - Error 45"
+    severity: error
+
+  - id: NC-SRI-003
+    name: valor_modificacion_no_excede_sustento
+    description: >
+      El valorModificacion de la Nota de Crédito no puede superar el total con impuestos
+      ni el saldo remanente disponible de la factura de sustento.
+    classification:
+      type: sri
+      domain: montos
+    source:
+      document: "SRI-FT-2.32"
+      section: "Validación de Montos - Error 43"
+    severity: error
+
+  - id: NC-SRI-004
+    name: fecha_emision_no_anterior_a_sustento
+    description: >
+      La fecha de emisión de la Nota de Crédito debe ser igual o posterior
+      a la fecha de emisión de la factura que se modifica.
+    classification:
+      type: sri
+      domain: fechas
+    source:
+      document: "SRI-FT-2.32"
+      section: "infoNotaCredito.fechaEmision"
+    severity: error
+
+  - id: NC-SRI-005
+    name: clave_acceso_tipo_04_modulo11
+    description: >
+      La Clave de Acceso debe construirse con codDoc = 04 y calcular su dígito verificador
+      mediante el algoritmo Módulo 11 con ponderación 7..2 de derecha a izquierda.
+    classification:
+      type: sri
+      domain: comprobante
+    source:
+      document: "SRI-FT-2.32"
+      section: "Clave de Acceso"
+    severity: error
+
+  - id: NC-SRI-006
+    name: validacion_xsd_nota_credito
+    description: >
+      El XML debe validarse estrictamente contra ValidadorNotaCredito_V1.1.0.xsd antes de firmarse.
+    classification:
+      type: sri
+      domain: xml
+    source:
+      document: "SRI-FT-2.32"
+      section: "Anexo 3 - Esquema XSD Nota de Crédito v1.1.0"
+    severity: error
+
+  # -------------------------------------------------------------
+  # REGLAS DE NEGOCIO PROPIAS DE ECUNEXO (Tipo: business)
+  # -------------------------------------------------------------
+  - id: NC-BUS-001
+    name: factura_sustento_debe_estar_autorizada
+    description: >
+      Solo se puede emitir una Nota de Crédito si la Factura de sustento se encuentra
+      en estado AUTHORIZED en la base de datos de EcuNexo.
+    classification:
+      type: business
+      domain: workflow
+    severity: error
+
+  - id: NC-BUS-002
+    name: motivo_obligatorio_longitud
+    description: >
+      El motivo de la Nota de Crédito es obligatorio, debe normalizarse sin saltos de línea sucios
+      y su longitud debe situarse entre 1 y 300 caracteres.
+    classification:
+      type: business
+      domain: metadata
+    severity: error
+
+  - id: NC-BUS-003
+    name: bloqueo_emision_concurrente_nc
+    description: >
+      No se permite crear una nueva Nota de Crédito sobre una factura que ya posee
+      otra Nota de Crédito en proceso (estados Draft, Validated, Signed o Sent).
+    classification:
+      type: business
+      domain: concurrencia
+    severity: error
+
+  - id: NC-BUS-004
+    name: afectacion_kardex_segun_motivo
+    description: >
+      El reingreso de mercaderías a bodega y el recálculo del Costo Promedio Ponderado (CPP)
+      solo se ejecutan si el motivo corresponde a devolución física de bienes.
+    classification:
+      type: business
+      domain: inventario
+    severity: warning
+
+  # -------------------------------------------------------------
+  # REGLAS TÉCNICAS Y DE ARQUITECTURA (Tipo: technical)
+  # -------------------------------------------------------------
+  - id: NC-TEC-001
+    name: redondeo_monetario_half_up
+    description: >
+      Todos los totales monetarios (totalSinImpuestos, valorModificacion, baseImponible)
+      deben redondearse a 2 decimales usando MidpointRounding.AwayFromZero.
+    classification:
+      type: technical
+      domain: calculos
+    severity: error

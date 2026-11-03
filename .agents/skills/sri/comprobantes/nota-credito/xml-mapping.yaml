@@ -1,0 +1,113 @@
+mapping:
+  target_root: "notaCredito"
+  target_version: "1.1.0"
+  target_id: "comprobante"
+
+  infoTributaria:
+    notaCredito.infoTributaria.ambiente:
+      source: "creditNote.environment == Production ? '2' : '1'"
+      type: "string(1)"
+    notaCredito.infoTributaria.tipoEmision:
+      source: "'1'"
+      type: "string(1)"
+    notaCredito.infoTributaria.razonSocial:
+      source: "creditNote.emitter.legalName"
+      type: "string(1..300)"
+    notaCredito.infoTributaria.nombreComercial:
+      source: "creditNote.emitter.tradeName"
+      type: "string(1..300)?"
+    notaCredito.infoTributaria.ruc:
+      source: "creditNote.emitter.ruc"
+      type: "string(13)"
+    notaCredito.infoTributaria.claveAcceso:
+      source: "creditNote.accessKey"
+      type: "string(49)"
+    notaCredito.infoTributaria.codDoc:
+      source: "'04'"
+      type: "string(2)"
+    notaCredito.infoTributaria.estab:
+      source: "creditNote.establishment.code.padLeft(3, '0')"
+      type: "string(3)"
+    notaCredito.infoTributaria.ptoEmi:
+      source: "creditNote.emissionPoint.code.padLeft(3, '0')"
+      type: "string(3)"
+    notaCredito.infoTributaria.secuencial:
+      source: "creditNote.sequential.code.padLeft(9, '0')"
+      type: "string(9)"
+    notaCredito.infoTributaria.dirMatriz:
+      source: "creditNote.emitter.mainAddress"
+      type: "string(1..300)"
+
+  infoNotaCredito:
+    notaCredito.infoNotaCredito.fechaEmision:
+      source: "creditNote.issueDate.format('dd/MM/yyyy')"
+      type: "string(10)"
+    notaCredito.infoNotaCredito.dirEstablecimiento:
+      source: "creditNote.establishment.address"
+      type: "string(1..300)"
+    notaCredito.infoNotaCredito.tipoIdentificacionComprador:
+      source: "creditNote.counterparty.identificationType"
+      type: "string(2)"
+    notaCredito.infoNotaCredito.razonSocialComprador:
+      source: "creditNote.counterparty.name"
+      type: "string(1..300)"
+    notaCredito.infoNotaCredito.identificacionComprador:
+      source: "creditNote.counterparty.identificationNumber"
+      type: "string(1..20)"
+    notaCredito.infoNotaCredito.obligadoContabilidad:
+      source: "creditNote.emitter.obligedToKeepAccounting ? 'SI' : 'NO'"
+      type: "string(2)"
+    notaCredito.infoNotaCredito.codDocModificado:
+      source: "creditNote.modifiedDocumentType" # "01"
+      type: "string(2)"
+    notaCredito.infoNotaCredito.numDocModificado:
+      source: "creditNote.modifiedDocumentNumber" # "001-001-000000001"
+      type: "string(15)"
+    notaCredito.infoNotaCredito.fechaEmisionDocSustento:
+      source: "creditNote.modifiedIssueDate.format('dd/MM/yyyy')"
+      type: "string(10)"
+    notaCredito.infoNotaCredito.totalSinImpuestos:
+      source: "creditNote.subtotalWithoutTax.format('F2')"
+      type: "decimal(2)"
+    notaCredito.infoNotaCredito.valorModificacion:
+      source: "creditNote.grandTotal.format('F2')"
+      type: "decimal(2)"
+    notaCredito.infoNotaCredito.moneda:
+      source: "'DOLAR'"
+      type: "string"
+    notaCredito.infoNotaCredito.totalConImpuestos.totalImpuesto:
+      source: "creditNote.taxTotals"
+      iteration:
+        codigo: "taxTotal.taxCode"
+        codigoPorcentaje: "taxTotal.rateCode"
+        baseImponible: "taxTotal.taxableBase.format('F2')"
+        valor: "taxTotal.value.format('F2')"
+    notaCredito.infoNotaCredito.motivo:
+      source: "creditNote.motivo"
+      type: "string(1..300)"
+
+  detalles:
+    notaCredito.detalles.detalle:
+      source: "creditNote.lines"
+      iteration:
+        codigoInterno: "line.itemCode"
+        descripcion: "line.description"
+        cantidad: "line.quantity.format('0.00####')"
+        precioUnitario: "line.unitPrice.format('0.00####')"
+        descuento: "line.discount.format('F2')"
+        precioTotalSinImpuesto: "line.lineTotalWithoutTax.format('F2')"
+        impuestos.impuesto:
+          source: "line.taxes"
+          iteration:
+            codigo: "tax.taxCode"
+            codigoPorcentaje: "tax.rateCode"
+            tarifa: "tax.rate.format('F2')"
+            baseImponible: "tax.taxableBase.format('F2')"
+            valor: "tax.value.format('F2')"
+
+  infoAdicional:
+    notaCredito.infoAdicional.campoAdicional:
+      source: "creditNote.additionalFields"
+      iteration:
+        attribute_nombre: "field.key"
+        content: "field.value"

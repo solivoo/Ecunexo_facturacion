@@ -1,0 +1,60 @@
+validations:
+  - id: FAC-VAL-001
+    rule_ref: FAC-SRI-002
+    name: validacion_minimo_detalles
+    condition: "detalles.length >= 1"
+    error_message: "La factura debe tener al menos una línea de detalle."
+
+  - id: FAC-VAL-002
+    rule_ref: FAC-SRI-001
+    name: consistencia_subtotal_sin_impuestos
+    condition: "totalSinImpuestos == sum(detalles.map(d => d.precioTotalSinImpuesto))"
+    error_message: "El total sin impuestos no coincide con la suma de los subtotales de las líneas."
+
+  - id: FAC-VAL-003
+    rule_ref: FAC-SRI-001
+    name: consistencia_total_descuento
+    condition: "totalDescuento == sum(detalles.map(d => d.descuento))"
+    error_message: "El total de descuento no coincide con la suma de descuentos de las líneas."
+
+  - id: FAC-VAL-004
+    rule_ref: FAC-SRI-001
+    name: consistencia_importe_total
+    condition: "importeTotal == (totalSinImpuestos + sum(totalConImpuestos.map(t => t.valor)) + propina)"
+    error_message: "El importe total no coincide con la suma de subtotal, impuestos y propina."
+
+  - id: FAC-VAL-005
+    rule_ref: FAC-SRI-004
+    name: validacion_tope_consumidor_final
+    condition: "!(comprador.tipoIdentificacion == '07' && importeTotal > 50.00)"
+    error_message: "Las facturas emitidas a Consumidor Final no pueden superar USD 50.00 según la normativa del SRI."
+
+  - id: FAC-VAL-006
+    rule_ref: FAC-SRI-007
+    name: cuadre_de_pagos
+    condition: "sum(pagos.map(p => p.total)) == importeTotal"
+    error_message: "La suma de las formas de pago debe ser exactamente igual al importe total de la factura."
+
+  - id: FAC-VAL-007
+    rule_ref: FAC-SRI-005
+    name: clave_acceso_valida
+    condition: "claveAcceso != null && claveAcceso.length == 49 && modulo11(claveAcceso.substring(0, 48)) == int(claveAcceso[48])"
+    error_message: "La clave de acceso no cumple con el algoritmo Módulo 11 del SRI o su longitud es distinta a 49 dígitos."
+
+  - id: FAC-VAL-008
+    rule_ref: FAC-SRI-001
+    name: rango_secuencial
+    condition: "secuencial >= 1 && secuencial <= 999999999"
+    error_message: "El número secuencial debe estar en el rango de 1 a 999,999,999."
+
+  - id: FAC-VAL-009
+    rule_ref: FAC-SRI-002
+    name: detalle_precios_positivos
+    condition: "detalles.all(d => d.cantidad > 0 && d.precioUnitario >= 0)"
+    error_message: "Todas las líneas deben tener cantidad mayor a cero y precio unitario no negativo."
+
+  - id: FAC-VAL-010
+    rule_ref: FAC-SRI-001
+    name: descuento_no_superior_a_precio_bruto
+    condition: "detalles.all(d => d.descuento >= 0 && d.descuento <= round_2(d.cantidad * d.precioUnitario))"
+    error_message: "El descuento no puede ser negativo ni superar el importe bruto de la línea."
